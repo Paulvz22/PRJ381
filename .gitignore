@@ -1,0 +1,68 @@
+﻿# ==========================================
+# 1. GLOBAL / VS WORKSPACE CONFIGURATIONS
+# ==========================================
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ==========================================
+# 2. .NET MAUI / VISUAL STUDIO FILES
+# ==========================================
+# Build outputs
+[Bb]in/
+[Oo]bj/
+Generated\ Files/
+
+# MAUI / Android specific caches
+*.apk
+*.ap_
+*.dex
+*.aar
+*.jar
+
+# Exception: Force Git to track your imported Unity wrapper libraries
+!**/UnityAndroidBinding/Jars/*.aar
+!**/UnityAndroidBinding/Jars/*.jar
+
+# ==========================================
+# 3. UNITY ENGINE GENERATED FILES
+# ==========================================
+# Crash dumps and transient build folders
+[尝尝]ibrary/
+[罢罢]emp/
+[翱翱]bj/
+[叠叠]uild/
+[叠叠]uilds/
+[尝尝]ogs/
+[鲍鲍]serSettings/
+MemoryCaptures/
+RecordingBackups/
+
+# Assets tracking files generated on open
+[础础]ssets/AssetStoreTools*
+
+# Ignore compiler generated project files for editors
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# Unity internal platform compilation outputs
+*.assetbundle
+*.manifest
+
+# OS specific overrides
+.DS_Store
+Thumbs.db

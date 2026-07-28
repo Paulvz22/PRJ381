@@ -1,0 +1,290 @@
+{
+  "player_build_data": [
+    {
+      "type": "il2cppData",
+      "msg": {
+        "build_event_id": "591f991ff65eec04eb63d1bf8e7c13b2",
+        "node_executed": true,
+        "attribute_total_count_eager_static_constructor": 28,
+        "attribute_total_count_set_option": 0,
+        "attribute_total_count_generate_into_own_cpp_file": 0,
+        "attribute_total_count_ignore_by_deep_profiler": 47,
+        "extra_types_total_count": 0,
+        "option_extra_types_file_count": 0,
+        "option_additional_cpp_count": 0,
+        "option_emit_null_checks": true,
+        "option_enable_stacktrace": false,
+        "option_enable_deep_profiler": false,
+        "option_enable_stats": false,
+        "option_enable_array_bounds_check": true,
+        "option_enable_divide_by_zero_check": false,
+        "option_emit_comments": false,
+        "option_debug_assembly_name_count": 0,
+        "option_disable_generic_sharing": false,
+        "option_maximum_recursive_generic_depth": -1,
+        "option_generic_virtual_method_iterations": -1,
+        "option_code_generation_option": [
+          "EnableInlining"
+        ],
+        "option_file_generation_option": [],
+        "option_generics_option": [],
+        "option_feature": [],
+        "option_diagnostic_option": [],
+        "option_convert_to_cpp": true,
+        "option_compile_cpp": false,
+        "option_development_mode": false,
+        "option_enable_debugger": false,
+        "option_generate_usym_file": false,
+        "option_jobs": 8
+      },
+      "version": 1
+    },
+    {
+      "type": "playerBuildTimingData",
+      "msg": {
+        "build_event_id": "591f991ff65eec04eb63d1bf8e7c13b2",
+        "build_player": 235869,
+        "preprocess_player": 765,
+        "produce_player_script_assemblies": 51702,
+        "build_scripts_dlls": 71,
+        "writing_asset_files": 91440,
+        "postprocess_built_player": 73757,
+        "node_summary_table": [
+          {
+            "name": "Csc",
+            "duration": 2587
+          },
+          {
+            "name": "Csc",
+            "duration": 5922
+          },
+          {
+            "name": "Csc",
+            "duration": 551
+          },
+          {
+            "name": "Csc",
+            "duration": 950
+          },
+          {
+            "name": "Csc",
+            "duration": 2453
+          },
+          {
+            "name": "Csc",
+            "duration": 3855
+          },
+          {
+            "name": "Csc",
+            "duration": 3506
+          },
+          {
+            "name": "Csc",
+            "duration": 803
+          },
+          {
+            "name": "Csc",
+            "duration": 9593
+          },
+          {
+            "name": "Csc",
+            "duration": 4572
+          },
+          {
+            "name": "Csc",
+            "duration": 6203
+          },
+          {
+            "name": "Csc",
+            "duration": 708
+          },
+          {
+            "name": "Csc",
+            "duration": 2042
+          },
+          {
+            "name": "Csc",
+            "duration": 2682
+          },
+          {
+            "name": "Csc",
+            "duration": 1831
+          },
+          {
+            "name": "Csc",
+            "duration": 1834
+          },
+          {
+            "name": "Csc",
+            "duration": 1285
+          },
+          {
+            "name": "Csc",
+            "duration": 1856
+          },
+          {
+            "name": "Csc",
+            "duration": 2227
+          },
+          {
+            "name": "Csc",
+            "duration": 6154
+          },
+          {
+            "name": "Csc",
+            "duration": 4915
+          },
+          {
+            "name": "Csc",
+            "duration": 3232
+          },
+          {
+            "name": "Csc",
+            "duration": 4885
+          },
+          {
+            "name": "Csc",
+            "duration": 7224
+          },
+          {
+            "name": "Csc",
+            "duration": 1093
+          },
+          {
+            "name": "Csc",
+            "duration": 825
+          },
+          {
+            "name": "Csc",
+            "duration": 8861
+          },
+          {
+            "name": "Csc",
+            "duration": 7751
+          },
+          {
+            "name": "Csc",
+            "duration": 8447
+          },
+          {
+            "name": "Csc",
+            "duration": 427
+          },
+          {
+            "name": "Csc",
+            "duration": 2253
+          },
+          {
+            "name": "Csc",
+            "duration": 3742
+          },
+          {
+            "name": "Csc",
+            "duration": 1151
+          },
+          {
+            "name": "Csc",
+            "duration": 248
+          },
+          {
+            "name": "Csc",
+            "duration": 2317
+          },
+          {
+            "name": "Csc",
+            "duration": 1164
+          },
+          {
+            "name": "Csc",
+            "duration": 2775
+          },
+          {
+            "name": "Csc",
+            "duration": 619
+          },
+          {
+            "name": "il2cpp.exe",
+            "duration": 17450
+          },
+          {
+            "name": "UnityLinker.exe",
+            "duration": 112
+          },
+          {
+            "name": "UnityLinkerOld.exe",
+            "duration": 8521
+          }
+        ]
+      },
+      "version": 1
+    },
+    {
+      "type": "unityLinkerData",
+      "msg": {
+        "build_event_id": "591f991ff65eec04eb63d1bf8e7c13b2",
+        "node_executed": true,
+        "attribute_marked_count_always_link_assembly": 1,
+        "attribute_swept_count_always_link_assembly": 0,
+        "attribute_total_count_always_link_assembly": 1,
+        "attribute_marked_count_preserve": 45,
+        "attribute_total_count_preserve": 39,
+        "attribute_total_count_preserve_body": 0,
+        "attribute_marked_count_required_member": 209,
+        "attribute_swept_count_required_member": 245,
+        "attribute_total_count_required_by_assembly": 0,
+        "attribute_marked_count_required_by_assembly": 0,
+        "attribute_swept_count_required_by_assembly": 0,
+        "attribute_total_count_required_member": 454,
+        "attribute_marked_count_require_derived": 0,
+        "attribute_swept_count_require_derived": 1,
+        "attribute_total_count_require_derived": 1,
+        "attribute_marked_count_require_implementors": 0,
+        "attribute_swept_count_require_implementors": 0,
+        "attribute_total_count_require_implementors": 0,
+        "attribute_total_count_required_interface": 0,
+        "attribute_marked_count_require_attribute_usages": 629,
+        "attribute_total_count_require_attribute_usages": 3,
+        "attribute_total_count_dynamic_dependency": 4,
+        "attribute_marked_count_dynamic_dependency": 12,
+        "attribute_swept_count_dynamic_dependency": -8,
+        "assembly_counts_total_in": 120,
+        "assembly_counts_link": 41,
+        "assembly_counts_copy": 15,
+        "assembly_counts_delete": 64,
+        "assembly_counts_total_out": 56,
+        "unresolved_stubbing_total_count": 0,
+        "unresolved_stubbing_missing_interface_method_count": 0,
+        "unresolved_stubbing_missing_abstract_class_method_count": 0,
+        "unresolved_stubbing_missing_type_count": 0,
+        "unresolved_stubbing_missing_method_count": 0,
+        "unrecognized_reflection_access_total_count": 329,
+        "unrecognized_reflection_access_core_count": 160,
+        "unrecognized_reflection_access_unity_count": 169,
+        "unrecognized_reflection_access_user_count": 0,
+        "recognized_reflection_access_total_count": 46,
+        "recognized_reflection_access_core_count": 29,
+        "recognized_reflection_access_unity_count": 17,
+        "recognized_reflection_access_user_count": 0,
+        "link_xml_total_count": 10,
+        "link_xml_embedded_count": 1,
+        "link_xml_embedded_unity_count": 0,
+        "link_xml_embedded_user_count": 0,
+        "link_xml_file_count": 9,
+        "link_xml_assembly_preserve_all_total_count": 0,
+        "link_xml_assembly_preserve_all_unity_count": 0,
+        "link_xml_assembly_preserve_all_core_count": 0,
+        "link_xml_assembly_preserve_all_user_count": 0,
+        "engine_module_total_in": 78,
+        "engine_module_deleted": 44,
+        "engine_module_total_out": 34,
+        "option_rule_set": "Minimal",
+        "option_enable_report": false,
+        "option_enable_snapshot": false,
+        "option_enable_engine_module_stripping": true,
+        "option_unity_root_strategy": "AllNonEngineAndNonClassLibraries",
+        "option_enable_ildump": false
+      },
+      "version": 1
+    }
+  ]
+}
