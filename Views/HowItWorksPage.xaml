@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="BelgiumCampusARTour.Views.HowItWorksPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0A0A0A"
+    Title="How It Works">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0" Padding="15,10" ColumnDefinitions="Auto,*,Auto">
+            <Label Grid.Column="0" Text="←" FontSize="24" TextColor="White" VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Grid.Column="1" Text="How It Works" FontSize="18" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+
+        <VerticalStackLayout Grid.Row="1" Padding="30,20" Spacing="30" VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+                <Border BackgroundColor="#1A1A1A" Stroke="#E63946" StrokeThickness="2" StrokeShape="RoundRectangle 12" Padding="15">
+                    <Label Text="📷" FontSize="32" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                    <Label Text="1. Scan" FontSize="18" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="Scan the QR code placed at each campus location." FontSize="14" TextColor="#A8A8A8" />
+                </VerticalStackLayout>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+                <Border BackgroundColor="#1A1A1A" Stroke="#F4A261" StrokeThickness="2" StrokeShape="RoundRectangle 12" Padding="15">
+                    <Label Text="🔷" FontSize="32" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                    <Label Text="2. Explore" FontSize="18" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="Look around in 360° and tap on hotspots to learn more." FontSize="14" TextColor="#A8A8A8" />
+                </VerticalStackLayout>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+                <Border BackgroundColor="#1A1A1A" Stroke="#E9C46A" StrokeThickness="2" StrokeShape="RoundRectangle 12" Padding="15">
+                    <Label Text="🎧" FontSize="32" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                    <Label Text="3. Learn" FontSize="18" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="Enjoy audio, images and videos about each facility." FontSize="14" TextColor="#A8A8A8" />
+                </VerticalStackLayout>
+            </Grid>
+        </VerticalStackLayout>
+
+        <Button Grid.Row="2" Text="Got It!" BackgroundColor="#F4A261" TextColor="#0A0A0A" FontAttributes="Bold" FontSize="16" CornerRadius="12" Margin="20,10,20,30" HeightRequest="50" Clicked="OnGotItClicked" />
+    </Grid>
+</ContentPage>

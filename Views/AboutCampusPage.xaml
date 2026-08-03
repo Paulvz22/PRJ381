@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="BelgiumCampusARTour.Views.AboutCampusPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0A0A0A"
+    Title="About Campus">
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" Padding="15,10" ColumnDefinitions="Auto,*,Auto">
+            <Label Grid.Column="0" Text="←" FontSize="24" TextColor="White" VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Grid.Column="1" Text="About Campus" FontSize="18" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20" Spacing="20">
+                <Image Source="dotnet_bot.png" Aspect="AspectFill" HeightRequest="200">
+                    <Image.Clip>
+                        <RoundRectangleGeometry Rect="0,0,400,200" CornerRadius="16" />
+                    </Image.Clip>
+                </Image>
+                <Label Text="Belgium Campus IT Varsity" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Belgium Campus is a leading private higher education institution in South Africa, specializing in Information Technology." FontSize="14" TextColor="#A8A8A8" />
+                <Border BackgroundColor="#1A1A1A" Stroke="#2A2A2A" StrokeShape="RoundRectangle 12" Padding="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Campus Locations" FontSize="16" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="• Robotics Lab - Engineering Block" FontSize="14" TextColor="#A8A8A8" />
+                        <Label Text="• Manufacturing Lab - Engineering Block" FontSize="14" TextColor="#A8A8A8" />
+                        <Label Text="• Lecture Hall - Academic Block" FontSize="14" TextColor="#A8A8A8" />
+                        <Label Text="• Library - Academic Block" FontSize="14" TextColor="#A8A8A8" />
+                        <Label Text="• Student Lounge - Student Centre" FontSize="14" TextColor="#A8A8A8" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
