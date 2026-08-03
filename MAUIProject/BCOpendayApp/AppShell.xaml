@@ -4,11 +4,14 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:BCOpendayApp"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
     Title="BCOpendayApp">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    Title="Splash"
+    ContentTemplate="{DataTemplate views:HomePage}"
+    Route="HomePage" />
 
 </Shell>
+
+    

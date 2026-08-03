@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BCOpendayApp.Views.SplashPage1"
+    BackgroundColor="Black"
+    NavigationPage.HasNavigationBar="False"
+    Shell.NavBarIsVisible="False">
+
+    <Grid>
+
+        <!-- Background building -->
+        <Image
+            Source="building.png.png"
+            Aspect="AspectFit"
+            VerticalOptions="End"
+            Opacity="0.15"/>
+
+        <!-- Optional outline image -->
+        <Image
+            Source="campus_outline.png"
+            Aspect="AspectFit"
+            VerticalOptions="End"
+            Opacity="0.08"/>
+
+        <VerticalStackLayout
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Margin="0,-60,0,0"
+            Padding="30"
+            Spacing="10">
+
+            <!-- Logo -->
+            <Image
+                Source="belgium_logo.png.png"
+                WidthRequest="210"
+                HeightRequest="210"/>
+
+            <!-- Belgium Campus -->
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                Spacing="-8">
+
+                <Label
+                    Text="BELGIUM"
+                    FontSize="36"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    HorizontalTextAlignment="Center"
+                    />
+
+                <Label
+                    Text="CAMPUS"
+                    FontSize="28"
+                    TextColor="#E53935"
+                    HorizontalTextAlignment="Center"
+                    />
+
+            </VerticalStackLayout>
+
+            <!-- Space before title -->
+            <BoxView HeightRequest="18" Opacity="0"/>
+
+            <!-- Title -->
+            <Label
+                Text="AR CAMPUS TOUR"
+                FontSize="30"
+                FontAttributes="Bold"
+                TextColor="White"
+                HorizontalTextAlignment="Center"/>
+
+            <!-- Subtitle -->
+            <Label
+                Text="Explore. Discover. Belong."
+                FontSize="18"
+                TextColor="#DDDDDD"
+                HorizontalTextAlignment="Center"/>
+
+            <!-- Space before loader -->
+            <BoxView HeightRequest="20" Opacity="0"/>
+
+            <!-- Loading animation -->
+            <ActivityIndicator
+                IsRunning="True"
+                Color="#FF3D3D"
+                WidthRequest="55"
+                HeightRequest="55"/>
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>
