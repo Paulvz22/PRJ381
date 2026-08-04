@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BCOpendayApp.Views.HomePage"
+    BackgroundColor="Black"
+    NavigationPage.HasNavigationBar="False"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*,90">
+
+        <!-- ========================= -->
+        <!-- SCROLLABLE CONTENT -->
+        <!-- ========================= -->
+
+        <ScrollView
+            Grid.Row="0"
+            VerticalScrollBarVisibility="Never">
+
+            <VerticalStackLayout>
+
+                <!-- ========================= -->
+                <!-- HEADER -->
+                <!-- ========================= -->
+
+                <Grid
+                    Padding="20,18"
+                    ColumnDefinitions="50,*,50">
+
+                    <Image
+                        Grid.Column="0"
+                        Source="hamburger_menu.png"
+                        WidthRequest="28"
+                        HeightRequest="28"
+                        VerticalOptions="Center"/>
+
+                    <VerticalStackLayout
+                        Grid.Column="1"
+                        HorizontalOptions="Center"
+                        Spacing="-5">
+
+                        <Label
+                            Text="BELGIUM CAMPUS"
+                            TextColor="White"
+                            FontSize="28"
+                            FontAttributes="Bold"/>
+
+                        <Label
+                            Text="AR TOUR"
+                            TextColor="#F44336"
+                            FontSize="24"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="Center"/>
+
+                    </VerticalStackLayout>
+
+                    <Image
+                        Grid.Column="2"
+                        Source="bell.png"
+                        WidthRequest="30"
+                        HeightRequest="30"
+                        VerticalOptions="Center"/>
+
+                </Grid>
+
+                <!-- ========================= -->
+                <!-- BANNER -->
+                <!-- ========================= -->
+
+                <Frame
+                    Margin="10,10,10,0"
+                    Padding="0"
+                    CornerRadius="20"
+                    HasShadow="False"
+                    IsClippedToBounds="True"
+                    HeightRequest="450"
+                    BackgroundColor="Transparent"
+                    BorderColor="Transparent">
+
+                    <Image
+                        Source="badgebc.png"
+                        Aspect="AspectFill"/>
+
+                </Frame>
+
+                <!-- ========================= -->
+                <!-- SLIDER DOTS -->
+                <!-- ========================= -->
+
+                <HorizontalStackLayout
+                    HorizontalOptions="Center"
+                    Margin="0,10"
+                    Spacing="8">
+
+                    <BoxView
+                        WidthRequest="14"
+                        HeightRequest="6"
+                        CornerRadius="3"
+                        Color="#F44336"/>
+
+                    <BoxView
+                        WidthRequest="6"
+                        HeightRequest="6"
+                        CornerRadius="3"
+                        Color="White"/>
+
+                    <BoxView
+                        WidthRequest="6"
+                        HeightRequest="6"
+                        CornerRadius="3"
+                        Color="White"/>
+
+                </HorizontalStackLayout>
+
+                <!-- ========================= -->
+                <!-- EXPLORE -->
+                <!-- ========================= -->
+
+                <VerticalStackLayout
+                    Padding="20,0,20,20"
+                    Spacing="20">
+
+                    <Label
+                        Text="Explore Campus"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="White"/>
+
+                    <Grid
+                        ColumnDefinitions="*,*,*"
+                        RowDefinitions="Auto,Auto"
+                        ColumnSpacing="10"
+                        RowSpacing="10">
+
+                        <!-- CARD 1 -->
+
+                        <Frame
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="ar_tour.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="Start AR Tour"
+                                    TextColor="White"
+                                    HorizontalTextAlignment="Center"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                        <!-- CARD 2 -->
+
+                        <Frame
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="locations.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="Locations"
+                                    TextColor="White"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                        <!-- CARD 3 -->
+
+                        <Frame
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="map.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="Map"
+                                    TextColor="White"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                        <!-- CARD 4 -->
+
+                        <Frame
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="how_it_works.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="How It Works"
+                                    TextColor="White"
+                                    HorizontalTextAlignment="Center"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                        <!-- CARD 5 -->
+
+                        <Frame
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="about.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="About Campus"
+                                    TextColor="White"
+                                    HorizontalTextAlignment="Center"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                        <!-- CARD 6 -->
+
+                        <Frame
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            BackgroundColor="#111111"
+                            CornerRadius="18"
+                            HeightRequest="135">
+
+                            <VerticalStackLayout
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Spacing="8">
+
+                                <Image
+                                    Source="settings.png"
+                                    WidthRequest="65"
+                                    HeightRequest="65"/>
+
+                                <Label
+                                    Text="Settings"
+                                    TextColor="White"/>
+
+                            </VerticalStackLayout>
+
+                        </Frame>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+        <!-- ========================= -->
+        <!-- BOTTOM NAVIGATION -->
+        <!-- ========================= -->
+
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="#0D0D0D"
+            ColumnDefinitions="*,*,*,*"
+            Padding="0,8">
+
+            <!-- Home -->
+
+            <Image
+                Grid.Column="0"
+                Source="home_nav.png"
+                WidthRequest="50"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="HomeTapped"/>
+                </Image.GestureRecognizers>
+
+            </Image>
+
+            <!-- Tour -->
+
+            <Image
+                Grid.Column="1"
+                Source="tour_nav.png"
+                WidthRequest="50"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TourTapped"/>
+                </Image.GestureRecognizers>
+
+            </Image>
+
+            <!-- Map -->
+
+            <Image
+                Grid.Column="2"
+                Source="map_nav.png"
+                WidthRequest="50"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="MapTapped"/>
+                </Image.GestureRecognizers>
+
+            </Image>
+
+            <!-- Profile -->
+
+            <Image
+                Grid.Column="3"
+                Source="profile_nav.png"
+                WidthRequest="50"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="ProfileTapped"/>
+                </Image.GestureRecognizers>
+
+            </Image>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
