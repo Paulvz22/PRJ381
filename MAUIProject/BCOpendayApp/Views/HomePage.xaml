@@ -197,6 +197,10 @@
                             CornerRadius="18"
                             HeightRequest="135">
 
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="MapTapped" />
+                            </Frame.GestureRecognizers>
+
                             <VerticalStackLayout
                                 VerticalOptions="Center"
                                 HorizontalOptions="Center"
