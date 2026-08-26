@@ -19,7 +19,7 @@ public partial class HomePage : ContentPage
 
     private void MapTapped(object sender, TappedEventArgs e)
     {
-        // await Navigation.PushAsync(new MapPage());
+        Navigation.PushAsync(new MapPage());
     }
 
     private void ProfileTapped(object sender, TappedEventArgs e)

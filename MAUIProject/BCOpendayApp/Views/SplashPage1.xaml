@@ -11,7 +11,7 @@
 
         <!-- Background building -->
         <Image
-            Source="building.png.png"
+            Source="building.png"
             Aspect="AspectFit"
             VerticalOptions="End"
             Opacity="0.15"/>
@@ -32,7 +32,7 @@
 
             <!-- Logo -->
             <Image
-                Source="belgium_logo.png.png"
+                Source="belgium_logo.png"
                 WidthRequest="210"
                 HeightRequest="210"/>
 
