@@ -12,13 +12,32 @@
                AbsoluteLayout.LayoutBounds="0,0,1,1"
                AbsoluteLayout.LayoutFlags="All" />
 
-        <!-- Example pin: Library -->
+        <!-- Library pin -->
         <Button Text="📍"
                 FontSize="20"
                 BackgroundColor="Transparent"
                 AbsoluteLayout.LayoutBounds="0.45,0.25,40,40"
                 AbsoluteLayout.LayoutFlags="PositionProportional"
-                Clicked="OnLibraryPinTapped" />
+                Clicked="OnPinTapped"
+                CommandParameter="Library" />
+
+        <!-- Reception pin -->
+        <Button Text="📍"
+                FontSize="20"
+                BackgroundColor="Transparent"
+                AbsoluteLayout.LayoutBounds="0.55,0.14,40,40"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                Clicked="OnPinTapped"
+                CommandParameter="Reception" />
+
+        <!-- Classroom Alpha pin -->
+        <Button Text="📍"
+            FontSize="20"
+            BackgroundColor="Transparent"
+            AbsoluteLayout.LayoutBounds="0.38,0.20,40,40"
+            AbsoluteLayout.LayoutFlags="PositionProportional"
+            Clicked="OnPinTapped"
+            CommandParameter="Classroom Alpha" />
 
     </AbsoluteLayout>
 
