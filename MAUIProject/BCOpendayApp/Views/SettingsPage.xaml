@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BCOpendayApp.Views.SettingsPage"
+                 BackgroundColor="#0A0A0A"
+    Title="Settings">
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" Padding="15,10" ColumnDefinitions="Auto,*,Auto">
+            <Label Grid.Column="0" Text="←" FontSize="24" TextColor="White" VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Grid.Column="1" Text="Settings" FontSize="18" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20" Spacing="16">
+                <Label Text="PREFERENCES" FontSize="12" TextColor="#E63946" FontAttributes="Bold" Margin="0,0,0,4" />
+                <Border BackgroundColor="#1A1A1A" Stroke="#2A2A2A" StrokeShape="RoundRectangle 12" Padding="0">
+                    <VerticalStackLayout>
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Notifications" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" OnColor="#E63946" ThumbColor="White" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#2A2A2A" />
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Dark Mode" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="True" OnColor="#E63946" ThumbColor="White" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#2A2A2A" />
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Location Services" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="True" OnColor="#E63946" ThumbColor="White" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="SUPPORT" FontSize="12" TextColor="#E63946" FontAttributes="Bold" Margin="0,8,0,4" />
+                <Border BackgroundColor="#1A1A1A" Stroke="#2A2A2A" StrokeShape="RoundRectangle 12" Padding="0">
+                    <VerticalStackLayout>
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Help Center" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="›" TextColor="#A8A8A8" FontSize="20" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#2A2A2A" />
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Privacy Policy" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="›" TextColor="#A8A8A8" FontSize="20" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#2A2A2A" />
+                        <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                            <Label Text="Terms of Service" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="›" TextColor="#A8A8A8" FontSize="20" VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Log Out" BackgroundColor="Transparent" BorderColor="#E63946" BorderWidth="1" TextColor="#E63946" FontAttributes="Bold" CornerRadius="12" HeightRequest="50" Margin="0,20,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
+    
