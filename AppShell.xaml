@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="BelgiumCampusARTour.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BelgiumCampusARTour.Views"
+    Shell.BackgroundColor="#0A0A0A"
+    Shell.ForegroundColor="White"
+    Shell.TabBarBackgroundColor="#1A1A1A"
+    Shell.TabBarForegroundColor="#E63946"
+    Shell.TabBarUnselectedColor="#A8A8A8"
+    Shell.TabBarTitleColor="#E63946">
+
+    <ShellContent Title="Splash" ContentTemplate="{DataTemplate views:SplashPage}" Route="SplashPage" Shell.FlyoutBehavior="Disabled" Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="False" />
+
+    <TabBar Route="MainTabs">
+       
+        <Tab Title="Tour" Icon="compass.png">
+            <ShellContent Title="Tour" ContentTemplate="{DataTemplate views:HomePage}" Route="TourPage" />
+        </Tab>
+        <Tab Title="Map" Icon="map.png">
+            <ShellContent Title="Map" ContentTemplate="{DataTemplate views:HomePage}" Route="MapPage" />
+        </Tab>
+        <Tab Title="Profile" Icon="user.png">
+            <ShellContent Title="Profile" ContentTemplate="{DataTemplate views:HomePage}" Route="ProfilePage" />
+        </Tab>
+        <Tab Title="Home" Icon="home.png">
+            <ShellContent Title="Home" 
+                  ContentTemplate="{DataTemplate views:HomePage}" 
+                  Route="HomePage" 
+                  Shell.NavBarIsVisible="False" />
+        </Tab>
+    </TabBar>
+
+    <ShellContent Title="How It Works" ContentTemplate="{DataTemplate views:HowItWorksPage}" Route="HowItWorksPage" Shell.TabBarIsVisible="False" />
+    <ShellContent Title="About Campus" ContentTemplate="{DataTemplate views:AboutCampusPage}" Route="AboutCampusPage" Shell.TabBarIsVisible="False" />
+    <ShellContent Title="Settings" ContentTemplate="{DataTemplate views:SettingsPage}" Route="SettingsPage" Shell.TabBarIsVisible="False" />
+</Shell>

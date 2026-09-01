@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="BelgiumCampusARTour.Views.SplashPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0A0A0A"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <Grid>
+        <VerticalStackLayout Spacing="20" VerticalOptions="Center" HorizontalOptions="Center">
+            <Label Text="B" FontSize="120" FontAttributes="Bold" TextColor="#F4A261" HorizontalOptions="Center" />
+            <BoxView HeightRequest="4" WidthRequest="60" Color="#E63946" HorizontalOptions="Center" />
+            <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Label Text="BELGIUM" FontSize="28" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" CharacterSpacing="4" />
+                <Label Text="CAMPUS" FontSize="28" FontAttributes="Bold" TextColor="#E63946" HorizontalOptions="Center" CharacterSpacing="4" />
+            </VerticalStackLayout>
+            <Label Text="AR CAMPUS TOUR" FontSize="18" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" Margin="0,20,0,0" />
+            <Label Text="Explore. Discover. Belong." FontSize="14" TextColor="#A8A8A8" HorizontalOptions="Center" />
+            <ActivityIndicator IsRunning="True" Color="#F4A261" Margin="0,40,0,0" HeightRequest="40" WidthRequest="40" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BelgiumCampusARTour.Views.HomePage"
+             Title="Home"
+             BackgroundColor="#0A0A0A">
+
+	<Grid RowDefinitions="Auto,*">
+
+		<!-- Custom Header -->
+		<Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto"
+              Padding="20,15"
+              BackgroundColor="#0A0A0A">
+
+			<Label Grid.Column="0"
+                   Text="&#9776;"
+                   FontSize="24"
+                   TextColor="White"
+                   VerticalOptions="Center">
+				<Label.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnMenuTapped"/>
+				</Label.GestureRecognizers>
+			</Label>
+
+			<VerticalStackLayout Grid.Column="1"
+                                 HorizontalOptions="Center"
+                                 Spacing="0">
+				<Label Text="BELGIUM CAMPUS"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       FontFamily="OpenSansSemibold"/>
+				<Label Text="AR TOUR"
+                       FontSize="12"
+                       TextColor="#E63946"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       FontFamily="OpenSansSemibold"/>
+			</VerticalStackLayout>
+
+			<Label Grid.Column="2"
+                   Text="&#128276;"
+                   FontSize="20"
+                   TextColor="White"
+                   VerticalOptions="Center">
+				<Label.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnNotificationsTapped"/>
+				</Label.GestureRecognizers>
+			</Label>
+		</Grid>
+
+		<ScrollView Grid.Row="1">
+			<VerticalStackLayout Spacing="20" Padding="20,0,20,30">
+
+				<!-- Hero / Carousel Card -->
+				<Border StrokeThickness="0"
+                        BackgroundColor="#1A1A1A"
+                        StrokeShape="RoundRectangle 20"
+                        HeightRequest="220">
+					<Grid>
+						<!-- Replace 'campus_hero.jpg' with your actual image -->
+						<Image Source="campus_hero.jpg"
+                               Aspect="AspectFill"/>
+
+						<!-- Dark gradient overlay -->
+						<Border StrokeThickness="0"
+                                BackgroundColor="#80000000"
+                                StrokeShape="RoundRectangle 20"/>
+
+						<VerticalStackLayout VerticalOptions="End"
+                                             Padding="20,15"
+                                             Spacing="4">
+							<Label Text="Welcome to"
+                                   TextColor="#FFB800"
+                                   FontSize="14"
+                                   FontFamily="OpenSansSemibold"/>
+							<Label Text="Belgium Campus"
+                                   TextColor="White"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   FontFamily="OpenSansSemibold"/>
+							<Label Text="Scan. Explore. Experience."
+                                   TextColor="#A8A8A8"
+                                   FontSize="12"
+                                   FontFamily="OpenSansRegular"/>
+
+							<!-- Dot indicators -->
+							<HorizontalStackLayout Spacing="6" Margin="0,12,0,0">
+								<BoxView WidthRequest="20"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="#E63946"/>
+								<BoxView WidthRequest="6"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="#555555"/>
+								<BoxView WidthRequest="6"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="#555555"/>
+							</HorizontalStackLayout>
+						</VerticalStackLayout>
+					</Grid>
+				</Border>
+
+				<!-- Explore Campus Section -->
+				<Label Text="Explore Campus"
+                       TextColor="White"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       FontFamily="OpenSansSemibold"/>
+
+				<Grid ColumnDefinitions="*,*,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="12"
+                      RowSpacing="12">
+
+					<!-- Start AR Tour -->
+					<Border Grid.Row="0" Grid.Column="0"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnARTourTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#9638;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="Start AR Tour"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+					<!-- Locations -->
+					<Border Grid.Row="0" Grid.Column="1"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnLocationsTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#128205;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="Locations"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+					<!-- Map -->
+					<Border Grid.Row="0" Grid.Column="2"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnMapTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#128506;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="Map"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+					<!-- How It Works -->
+					<Border Grid.Row="1" Grid.Column="0"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnHowItWorksTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#10067;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="How It Works"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+					<!-- About Campus -->
+					<Border Grid.Row="1" Grid.Column="1"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnAboutCampusTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#127963;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="About Campus"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+					<!-- Settings -->
+					<Border Grid.Row="1" Grid.Column="2"
+                            StrokeThickness="0"
+                            BackgroundColor="#1A1A1A"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0,18">
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnSettingsTapped"/>
+						</Border.GestureRecognizers>
+						<VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+							<Label Text="&#9881;"
+                                   FontSize="32"
+                                   TextColor="#E63946"
+                                   HorizontalOptions="Center"/>
+							<Label Text="Settings"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   FontFamily="OpenSansRegular"/>
+						</VerticalStackLayout>
+					</Border>
+
+				</Grid>
+			</VerticalStackLayout>
+		</ScrollView>
+	</Grid>
+</ContentPage>
