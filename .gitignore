@@ -66,3 +66,8 @@ UnityProject/Assets/AssetStoreTools*
 # Ensure Git tracks the critical binding library needed to link Unity to MAUI
 !MAUIProject/UnityAndroidBinding/Jars/*.jar
 !MAUIProject/UnityAndroidBinding/Jars/*.aar
+# ==========================================
+# 5. FIREBASE CONFIG FILES (sensitive - do not commit)
+# ==========================================
+google-services.json
+GoogleService-Info.plist
