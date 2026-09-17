@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 [InitializeOnLoad]
 sealed class ReadmeEditor : Editor
 {
-    const string k_ShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
-    const string k_ReadmeSourceDirectory = "Assets/TutorialInfo";
+    static readonly string k_ShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
+    static readonly string k_ReadmeSourceDirectory = "Assets/TutorialInfo";
 
     static ReadmeEditor()
         => EditorApplication.delayCall += SelectReadmeAutomatically;

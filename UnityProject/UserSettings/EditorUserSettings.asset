@@ -3,7 +3,7 @@
 --- !u!162 &1
 EditorUserSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 4
+  serializedVersion: 5
   m_ConfigSettings:
     QuickInstaller_com.unity.purchasing_installRecorded:
       value: 2550581500
@@ -11,8 +11,14 @@ EditorUserSettings:
     QuickInstaller_com.unity.services.levelplay_installRecorded:
       value: 2550581500
       flags: 0
+    QuickInstaller_com.unity.services.vivox_installRecorded:
+      value: 2550581500
+      flags: 0
     RecentlyUsedSceneGuid-0:
       value: 5a08575f5207595a0f5d59741173094444164f7d7d2a23317c7a4465bbe1646d
+      flags: 0
+    RecentlyUsedSceneGuid-1:
+      value: 50540304070d5a08095e0e734477094446164a792a717236797a1e67e6b96168
       flags: 0
     vcSharedLogLevel:
       value: 0d5e400f0650
@@ -22,7 +28,7 @@ EditorUserSettings:
   m_VCDebugCmd: 0
   m_VCDebugOut: 0
   m_SemanticMergeMode: 2
-  m_DesiredImportWorkerCount: 2
+  m_DesiredImportWorkerCount: 3
   m_StandbyImportWorkerCount: 2
   m_IdleImportWorkerShutdownDelay: 60000
   m_VCShowFailedCheckout: 1
@@ -34,3 +40,4 @@ EditorUserSettings:
   m_VCScanLocalPackagesOnConnect: 1
   m_ArtifactGarbageCollection: 1
   m_CompressAssetsOnImport: 1
+  m_VCAutoRevertUnchangedFiles: 0
