@@ -7,6 +7,15 @@ namespace BCOpendayApp
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("BCOpendayApp.appsettings.json");
+
+            if (stream != null)
+            {
+                var config = new ConfigurationBuilder().AddJsonStream(stream).Build();
+                builder.Configuration.AddConfiguration(config);
+            }
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
