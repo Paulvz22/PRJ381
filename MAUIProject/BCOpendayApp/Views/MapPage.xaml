@@ -2,43 +2,110 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BCOpendayApp.Views.MapPage"
+             BackgroundColor="Black"
              Title="MapPage">
 
-    <AbsoluteLayout>
+    <Grid RowDefinitions="60,*">
 
-        <!--Background campus map image -->
-        <Image Source="campus_map_main.png"
-               Aspect="AspectFit"
-               AbsoluteLayout.LayoutBounds="0,0,1,1"
-               AbsoluteLayout.LayoutFlags="All" />
+        <!-- ========================= -->
+        <!-- NAV BAR (Row 0) -->
+        <!-- ========================= -->
+        <Grid Grid.Row="0"
+              BackgroundColor="#333333"
+              ColumnDefinitions="*,*,*">
 
-        <!-- Library pin -->
-        <Button Text="📍"
-                FontSize="20"
-                BackgroundColor="Transparent"
-                AbsoluteLayout.LayoutBounds="0.45,0.25,40,40"
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                Clicked="OnPinTapped"
-                CommandParameter="Library" />
+            <Button Grid.Column="0"
+                    Text="Main"
+                    Clicked="OnSectionSwitched"
+                    CommandParameter="campus_map_main.png"
+                    BackgroundColor="Transparent"
+                    TextColor="#F44336"
+                    FontAttributes="Bold"
+                    CornerRadius="0"
+                    BorderWidth="0" />
 
-        <!-- Reception pin -->
-        <Button Text="📍"
-                FontSize="20"
-                BackgroundColor="Transparent"
-                AbsoluteLayout.LayoutBounds="0.55,0.14,40,40"
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                Clicked="OnPinTapped"
-                CommandParameter="Reception" />
+            <Button Grid.Column="1"
+                    Text="North"
+                    Clicked="OnSectionSwitched"
+                    CommandParameter="campus_map_north.png"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    CornerRadius="0"
+                    BorderWidth="0" />
 
-        <!-- Classroom Alpha pin -->
-        <Button Text="📍"
-            FontSize="20"
-            BackgroundColor="Transparent"
-            AbsoluteLayout.LayoutBounds="0.38,0.20,40,40"
-            AbsoluteLayout.LayoutFlags="PositionProportional"
-            Clicked="OnPinTapped"
-            CommandParameter="Classroom Alpha" />
+            <Button Grid.Column="2"
+                    Text="West"
+                    Clicked="OnSectionSwitched"
+                    CommandParameter="campus_map_west.png"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    CornerRadius="0"
+                    BorderWidth="0" />
 
-    </AbsoluteLayout>
+        </Grid>
+
+        <!-- ========================= -->
+        <!-- CONTENT (Row 1): map + key panel -->
+        <!-- ========================= -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,300"
+              BackgroundColor="Black">
+
+            <!-- Map area -->
+            <AbsoluteLayout Grid.Column="0" BackgroundColor="Black">
+
+                <Image x:Name="CampusMapImage"
+                   Source="campus_map_main.png"
+                   Aspect="AspectFit"
+                   AbsoluteLayout.LayoutBounds="-0.15,0,1,1"
+                   AbsoluteLayout.LayoutFlags="All" />
+
+                <!-- Library pin -->
+                <Button Text="📍"
+                    FontSize="20"
+                    BackgroundColor="Transparent"
+                    AbsoluteLayout.LayoutBounds="0.45,0.25,40,40"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnPinTapped"
+                    CommandParameter="Library" />
+
+                <!-- Reception pin -->
+                <Button Text="📍"
+                    FontSize="20"
+                    BackgroundColor="Transparent"
+                    AbsoluteLayout.LayoutBounds="0.55,0.14,40,40"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnPinTapped"
+                    CommandParameter="Reception" />
+
+                <!-- Classroom Alpha pin -->
+                <Button Text="📍"
+                    FontSize="20"
+                    BackgroundColor="Transparent"
+                    AbsoluteLayout.LayoutBounds="0.38,0.20,40,40"
+        
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnPinTapped"
+                    CommandParameter="Classroom Alpha" />
+
+            </AbsoluteLayout>
+
+            <!-- Building key panel (placeholder for now) -->
+            <VerticalStackLayout Grid.Column="1"
+                                  BackgroundColor="#111111"
+                                  Padding="10"
+                                  Spacing="8">
+
+                <Label Text="Key"
+                       TextColor="White"
+                       FontAttributes="Bold" />
+
+                <!-- Location list items will go here -->
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+    </Grid>
 
 </ContentPage>

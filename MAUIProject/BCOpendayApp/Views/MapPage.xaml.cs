@@ -28,4 +28,12 @@ public partial class MapPage : ContentPage
             }
         }
     }
+
+    private void OnSectionSwitched(object sender, EventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is string imageName)
+        {
+            CampusMapImage.Source = imageName;
+        }
+    }
 }
