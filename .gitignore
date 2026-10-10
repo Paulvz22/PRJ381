@@ -68,3 +68,6 @@ UnityProject/Assets/AssetStoreTools*
 !MAUIProject/UnityAndroidBinding/Jars/*.aar
 
 MAUIProject/BCOpendayApp/appsettings.json
+# Firebase config (secrets - never commit)
+google-services*.json
+GoogleService-Info.plist
