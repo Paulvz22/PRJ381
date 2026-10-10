@@ -65,6 +65,7 @@
         <PackageReference Include="Plugin.Firebase" Version="4.2.1" />
         <PackageReference Include="Plugin.Firebase.Auth" Version="5.0.1" />
         <PackageReference Include="Plugin.Firebase.Firestore" Version="4.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
 	</ItemGroup>
 
     <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
