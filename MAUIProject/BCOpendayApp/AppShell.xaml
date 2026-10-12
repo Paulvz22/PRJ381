@@ -1,17 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<Shell
-    x:Class="BCOpendayApp.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:BCOpendayApp"
-    xmlns:views="clr-namespace:BCOpendayApp.Views"
-    Title="BCOpendayApp">
-
-    <ShellContent
-    Title="Splash"
-    ContentTemplate="{DataTemplate views:HomePage}"
-    Route="HomePage" />
-
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell x:Class="BCOpendayApp.AppShell" xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:views="clr-namespace:BCOpendayApp.Views" Title="Belgium Campus Open Day" FlyoutBehavior="Disabled" Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="False">
+    <ShellContent Route="SplashPage" ContentTemplate="{DataTemplate views:SplashPage1}" />
+    <ShellContent Route="HomePage" ContentTemplate="{DataTemplate views:HomePage}" />
+    <ShellContent Route="TourPage" ContentTemplate="{DataTemplate views:TourPage}" />
+    <ShellContent Route="LocationsPage" ContentTemplate="{DataTemplate views:LocationsPage}" />
+    <ShellContent Route="MapPage" ContentTemplate="{DataTemplate views:MapPage}" />
 </Shell>
-
-    
