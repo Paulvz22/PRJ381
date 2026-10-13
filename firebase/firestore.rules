@@ -1,14 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Open Day visitors sign in anonymously before reading this public catalogue.
+
+    // Open Day catalogue: signed-in visitors can read, nobody can write from the app.
     match /locations/{locationId} {
       allow get, list: if request.auth != null;
-      // Only a trusted Admin SDK / IAM administrator seeds and edits the catalogue.
-      // Anonymous users are authenticated users, NOT administrators.
-      allow create, update, delete: if false;
+      allow write: if false;
     }
-    // This also protects subcollections. A parent rule does not grant nested access.
+
+    // Earlier Firebase test collection.
+    match /member1_verification/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Everything else is closed.
     match /{document=**} {
       allow read, write: if false;
     }
