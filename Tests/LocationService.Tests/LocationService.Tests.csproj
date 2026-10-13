@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <!-- Compile the ACTUAL repository sources, not a rewritten copy of their behavior. -->
+  <ItemGroup>
+    <Compile Include="../../MAUIProject/BCOpendayApp/Models/Hotspot.cs" Link="Source/Hotspot.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/CampusCatalog.cs" Link="Source/CampusCatalog.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/ILocationService.cs" Link="Source/ILocationService.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/ILocationRemoteSource.cs" Link="Source/ILocationRemoteSource.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/LocationJsonContext.cs" Link="Source/LocationJsonContext.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/HotspotValidation.cs" Link="Source/HotspotValidation.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/LocationService.cs" Link="Source/LocationService.cs" />
+    <Compile Include="../../MAUIProject/BCOpendayApp/Services/MapGeometry.cs" Link="Source/MapGeometry.cs" />
+    <None Include="../../MAUIProject/BCOpendayApp/Resources/Raw/locations.json" Link="locations.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -11,6 +11,6 @@ public static class VisitorStore
     public static bool Saved(string id) => Preferences.Default.Get("saved_" + id, false);
     public static void MarkVisited(string id) => Preferences.Default.Set("visited_" + id, true);
     public static void Save(string id, bool value) => Preferences.Default.Set("saved_" + id, value);
-    public static int Completed => CampusCatalog.Stops.Count(s => Visited(s.Id));
-    public static void ResetProgress() { foreach (var s in CampusCatalog.Stops) Preferences.Default.Remove("visited_" + s.Id); }
+    public static int Completed => CampusCatalog.StopIds.Count(Visited);
+    public static void ResetProgress() { foreach (var id in CampusCatalog.StopIds) Preferences.Default.Remove("visited_" + id); }
 }

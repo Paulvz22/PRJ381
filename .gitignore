@@ -1,4 +1,4 @@
-﻿# ==========================================
+# ==========================================
 # 1. VISUAL STUDIO & SYSTEM DEPLOYMENTS
 # ==========================================
 .vs/
@@ -71,3 +71,13 @@ MAUIProject/BCOpendayApp/appsettings.json
 # Firebase config (secrets - never commit)
 google-services*.json
 GoogleService-Info.plist
+
+# Member 3/4 tooling: credentials and generated dependency/runtime output
+**/node_modules/
+**/.firebase/
+**/service-account*.json
+**/serviceAccount*.json
+**/*-firebase-adminsdk-*.json
+**/.env
+**/.env.*
+**/*-debug.log

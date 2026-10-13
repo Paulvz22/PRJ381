@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Open Day visitors sign in anonymously before reading this public catalogue.
+    match /locations/{locationId} {
+      allow get, list: if request.auth != null;
+      // Only a trusted Admin SDK / IAM administrator seeds and edits the catalogue.
+      // Anonymous users are authenticated users, NOT administrators.
+      allow create, update, delete: if false;
+    }
+    // This also protects subcollections. A parent rule does not grant nested access.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

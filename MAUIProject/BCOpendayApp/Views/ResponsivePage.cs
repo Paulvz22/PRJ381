@@ -1,3 +1,4 @@
+using BCOpendayApp.Models;
 using BCOpendayApp.Services;
 using BCOpendayApp.Views.Components;
 using Microsoft.Maui.Controls.Shapes;
@@ -52,7 +53,7 @@ public class ResponsivePage : ContentPage
         foreach (var view in views) grid.Children.Add(view);
         adaptiveGrids.Add(grid); Reflow(); return grid;
     }
-    protected View LocationRow(CampusStop stop)
+    protected View LocationRow(Hotspot stop)
     {
         var row = new Grid { ColumnDefinitions = new ColumnDefinitionCollection { new(new GridLength(76)), new(GridLength.Star) }, ColumnSpacing = 12 };
         row.Add(new Image { Source = stop.Image, HeightRequest = 78, Aspect = Aspect.AspectFill });
@@ -75,7 +76,7 @@ public class ResponsivePage : ContentPage
             for (int i = 0; i < g.Children.Count; i++) { Grid.SetColumn((BindableObject)g.Children[i], i % columns); Grid.SetRow((BindableObject)g.Children[i], i / columns); }
         }
     }
-    protected View StopCard(CampusStop stop)
+    protected View StopCard(Hotspot stop)
     {
         var content = new VerticalStackLayout { Spacing = 12 };
         content.Add(Picture(stop.Image, 160)); content.Add(Text(stop.Name, 21, true)); content.Add(Text(stop.Summary, 15, false, Muted));
