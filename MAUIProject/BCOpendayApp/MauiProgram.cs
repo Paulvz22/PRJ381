@@ -64,6 +64,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocationEnvironment, MauiLocationEnvironment>();
         builder.Services.AddSingleton<ILocationRemoteSource, FirestoreLocationSource>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
+        builder.Services.AddSingleton<IAnalyticsService, FirebaseAnalyticsService>();
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddTransient<SplashPage1>();
         builder.Services.AddTransient<HomePage>();
@@ -73,6 +74,7 @@ public static class MauiProgram
         builder.Services.AddTransient<QrScanPage>();
         builder.Services.AddTransient<TourViewPage>();
         builder.Services.AddTransient<HotspotInfoOverlayPage>();
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
