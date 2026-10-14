@@ -4,7 +4,19 @@ namespace BCOpendayApp.Views;
 
 public partial class HomePage : LocationPage
 {
-    public HomePage(ILocationService locations) : base(locations) { InitializeComponent(); }
+    private readonly IAnalyticsService? _analyticsService;
+    public HomePage(ILocationService locations) : base(locations)
+    {
+        InitializeComponent();
+
+        _analyticsService = Application.Current?
+            .Handler?
+            .MauiContext?
+            .Services
+            .GetService<IAnalyticsService>();
+
+        _analyticsService?.LogScreenView("HomePage");
+    }
 
     protected override void Build()
     {
