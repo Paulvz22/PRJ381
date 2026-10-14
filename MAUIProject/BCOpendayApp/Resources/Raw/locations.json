@@ -7,10 +7,10 @@
     "description": "Explore how sensors, software and robotic systems work together. Ask your tour guide about practical projects and safe demonstrations. Do not touch equipment without permission.",
     "highlight": "Industrial robot arm • Sensors • Automation",
     "sortOrder": 1,
-    "mapSection": "",
-    "x": null,
-    "y": null,
-    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+    "mapSection": "north",
+    "x": 0.765,
+    "y": 0.726,
+    "positionNote": "Reference point for The Hangar on the North Campus map, read at pixel 1117, 527; not a surveyed or GPS position. The Robotics Lab and Manufacturing Lab are both in The Hangar, so their pins are drawn side by side."
   },
   {
     "id": "manufacturing",
@@ -20,10 +20,10 @@
     "description": "Discover the connection between design, technology and manufacturing. During your visit, ask how students develop and test prototypes. Follow staff instructions around machinery.",
     "highlight": "Design • Prototyping • Precision",
     "sortOrder": 2,
-    "mapSection": "",
-    "x": null,
-    "y": null,
-    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+    "mapSection": "north",
+    "x": 0.827,
+    "y": 0.726,
+    "positionNote": "Reference point for The Hangar on the North Campus map, read at pixel 1117, 527; not a surveyed or GPS position. The Robotics Lab and Manufacturing Lab are both in The Hangar, so their pins are drawn side by side."
   },
   {
     "id": "lecture",
@@ -36,7 +36,7 @@
     "mapSection": "",
     "x": null,
     "y": null,
-    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+    "positionNote": "Lecture rooms are spread across the Main and North campus buildings, so this stop has no single map pin. Ask your guide which room your session is in."
   },
   {
     "id": "library",
@@ -59,9 +59,9 @@
     "description": "Explore a place to meet fellow students and take a break. Ask your guide about clubs, student leadership and campus activities that interest you.",
     "highlight": "Community • Clubs • Student life",
     "sortOrder": 5,
-    "mapSection": "",
-    "x": null,
-    "y": null,
-    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+    "mapSection": "main",
+    "x": 0.693,
+    "y": 0.735,
+    "positionNote": "Reference point for the best-known Student Lounge on the Main Campus map, read at pixel 948, 1443; not a surveyed or GPS position. There are other student lounges on campus."
   }
 ]
