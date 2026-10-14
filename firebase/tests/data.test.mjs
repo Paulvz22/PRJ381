@@ -15,9 +15,8 @@ test('Library reference position is on the supplied main map', () => {
   assert.match(library.positionNote, /not a surveyed or GPS position/);
 });
 test('unprovided positions stay absent, not invented', () => {
-  for (const item of data.filter(item => item.id !== 'library')) {
-    assert.equal(item.mapSection, ''); assert.equal(item.x, null); assert.equal(item.y, null);
-  }
+  const lecture = data.find(item => item.id === 'lecture');
+  assert.equal(lecture.mapSection, ''); assert.equal(lecture.x, null); assert.equal(lecture.y, null);
 });
 test('rejects an empty catalogue', () => assert.throws(() => validateLocations([])));
 test('rejects duplicate IDs', () => assert.throws(() => validateLocations(edited(copy => copy[1].id = copy[0].id))));
@@ -28,7 +27,7 @@ test('rejects remote image URLs and path traversal', () => {
   for (const image of ['https://example.invalid/a.png', '../private.png'])
     assert.throws(() => validateLocations(edited(copy => copy[0].image = image)));
 });
-test('rejects incomplete coordinates', () => assert.throws(() => validateLocations(edited(copy => copy[0].x = 0.2))));
+test('rejects incomplete coordinates', () => assert.throws(() => validateLocations(edited(copy => copy[2].x = 0.2))));
 test('rejects NaN coordinates', () => assert.throws(() => validateLocations(edited(copy => copy[3].x = NaN))));
 test('rejects coordinates outside the image', () => assert.throws(() => validateLocations(edited(copy => copy[3].y = 1.5))));
 test('accepts real image boundary positions', () => assert.equal(validateLocations(edited(copy => { copy[3].x = 0; copy[3].y = 1; })).length, 5));

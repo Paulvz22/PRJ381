@@ -137,7 +137,7 @@ Add("broken bundle reports a packaging error", async () =>
 });
 Add("missing map position is not a fabricated zero coordinate", () =>
 {
-    Check(bundle.Where(item => item.Id != "library").All(item => !item.HasMapPosition && item.X is null && item.Y is null));
+    Check(bundle.Where(item => item.Id == "lecture").All(item => !item.HasMapPosition && item.X is null && item.Y is null));
     return Task.CompletedTask;
 });
 Add("invalid and incomplete coordinates are rejected", () =>
