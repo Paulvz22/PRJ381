@@ -33,7 +33,11 @@ public static class MauiProgram
                 try
                 {
                     CrossFirebase.Initialize(activity, () => Platform.CurrentActivity!,
-                        new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true));
+                        new CrossFirebaseSettings(
+                                                    isAuthEnabled: true,
+                                                    isFirestoreEnabled: true,
+                                                    isAnalyticsEnabled: true,
+                                                    isCrashlyticsEnabled: true));
                     if (global::Firebase.FirebaseApp.Instance is not null) FirebaseAvailability.MarkReady();
                 }
                 catch (Exception exception) { FirebaseAvailability.MarkUnavailable(exception); }
@@ -43,7 +47,11 @@ public static class MauiProgram
             {
                 try
                 {
-                    CrossFirebase.Initialize(new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true));
+                    CrossFirebase.Initialize(new CrossFirebaseSettings(
+                                                                        isAuthEnabled: true,
+                                                                        isFirestoreEnabled: true,
+                                                                        isAnalyticsEnabled: true,
+                                                                        isCrashlyticsEnabled: true));
                     if (global::Firebase.Core.App.DefaultInstance is not null) FirebaseAvailability.MarkReady();
                 }
                 catch (Exception exception) { FirebaseAvailability.MarkUnavailable(exception); }
@@ -56,6 +64,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocationEnvironment, MauiLocationEnvironment>();
         builder.Services.AddSingleton<ILocationRemoteSource, FirestoreLocationSource>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
+        builder.Services.AddSingleton<IAnalyticsService, FirebaseAnalyticsService>();
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddTransient<SplashPage1>();
         builder.Services.AddTransient<HomePage>();
@@ -65,6 +74,7 @@ public static class MauiProgram
         builder.Services.AddTransient<QrScanPage>();
         builder.Services.AddTransient<TourViewPage>();
         builder.Services.AddTransient<HotspotInfoOverlayPage>();
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif

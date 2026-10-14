@@ -102,7 +102,9 @@
     </PropertyGroup>
     <ItemGroup Condition="'$(FirebaseConfigured)' == 'true'">
         <PackageReference Include="Plugin.Firebase" Version="4.2.1" />
+        <PackageReference Include="Plugin.Firebase.Analytics" Version="4.0.0" />
         <PackageReference Include="Plugin.Firebase.Auth" Version="5.0.1" />
+        <PackageReference Include="Plugin.Firebase.Crashlytics" Version="4.0.0" />
         <PackageReference Include="Plugin.Firebase.Firestore" Version="4.0.0" />
         <TrimmerRootDescriptor Include="FirebaseLinker.xml" />
     </ItemGroup>
