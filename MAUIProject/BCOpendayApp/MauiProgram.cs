@@ -33,7 +33,11 @@ public static class MauiProgram
                 try
                 {
                     CrossFirebase.Initialize(activity, () => Platform.CurrentActivity!,
-                        new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true));
+                        new CrossFirebaseSettings(
+                                                    isAuthEnabled: true,
+                                                    isFirestoreEnabled: true,
+                                                    isAnalyticsEnabled: true,
+                                                    isCrashlyticsEnabled: true));
                     if (global::Firebase.FirebaseApp.Instance is not null) FirebaseAvailability.MarkReady();
                 }
                 catch (Exception exception) { FirebaseAvailability.MarkUnavailable(exception); }
@@ -43,7 +47,11 @@ public static class MauiProgram
             {
                 try
                 {
-                    CrossFirebase.Initialize(new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true));
+                    CrossFirebase.Initialize(new CrossFirebaseSettings(
+                                                                        isAuthEnabled: true,
+                                                                        isFirestoreEnabled: true,
+                                                                        isAnalyticsEnabled: true,
+                                                                        isCrashlyticsEnabled: true));
                     if (global::Firebase.Core.App.DefaultInstance is not null) FirebaseAvailability.MarkReady();
                 }
                 catch (Exception exception) { FirebaseAvailability.MarkUnavailable(exception); }
