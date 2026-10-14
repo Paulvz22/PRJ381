@@ -1,0 +1,67 @@
+[
+  {
+    "id": "robotics",
+    "name": "Robotics Lab",
+    "image": "roboticslab.png",
+    "summary": "Discover automation and intelligent machines.",
+    "description": "Explore how sensors, software and robotic systems work together. Ask your tour guide about practical projects and safe demonstrations. Do not touch equipment without permission.",
+    "highlight": "Industrial robot arm • Sensors • Automation",
+    "sortOrder": 1,
+    "mapSection": "",
+    "x": null,
+    "y": null,
+    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+  },
+  {
+    "id": "manufacturing",
+    "name": "Manufacturing Lab",
+    "image": "manufacturinglab.png",
+    "summary": "See ideas become practical prototypes.",
+    "description": "Discover the connection between design, technology and manufacturing. During your visit, ask how students develop and test prototypes. Follow staff instructions around machinery.",
+    "highlight": "Design • Prototyping • Precision",
+    "sortOrder": 2,
+    "mapSection": "",
+    "x": null,
+    "y": null,
+    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+  },
+  {
+    "id": "lecture",
+    "name": "Lecture Hall",
+    "image": "lecturehall.png",
+    "summary": "Step inside a collaborative learning space.",
+    "description": "Explore the spaces where students discuss concepts, solve problems and present their work. Ask your guide about the student learning experience and classroom support.",
+    "highlight": "Learning • Collaboration • Presentations",
+    "sortOrder": 3,
+    "mapSection": "",
+    "x": null,
+    "y": null,
+    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+  },
+  {
+    "id": "library",
+    "name": "Library",
+    "image": "library.png",
+    "summary": "Find your space to study and research.",
+    "description": "Discover the study environment and ask staff about learning resources. Keep noise low, respect students who are studying and ask before taking photographs.",
+    "highlight": "Research • Reading • Quiet study",
+    "sortOrder": 4,
+    "mapSection": "main",
+    "x": 0.551,
+    "y": 0.126,
+    "positionNote": "Reference point read from the Library label on the supplied Main Campus map; not a surveyed or GPS position."
+  },
+  {
+    "id": "lounge",
+    "name": "Student Lounge",
+    "image": "studentlounge.png",
+    "summary": "Get a feel for life beyond the classroom.",
+    "description": "Explore a place to meet fellow students and take a break. Ask your guide about clubs, student leadership and campus activities that interest you.",
+    "highlight": "Community • Clubs • Student life",
+    "sortOrder": 5,
+    "mapSection": "",
+    "x": null,
+    "y": null,
+    "positionNote": "The supplied project does not establish this stop's map position. Ask campus staff for directions."
+  }
+]

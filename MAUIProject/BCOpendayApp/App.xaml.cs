@@ -1,15 +1,14 @@
-﻿namespace BCOpendayApp
-{
-    public partial class App : Application
-    {
-        public App()
-        {
-            InitializeComponent();
-        }
+namespace BCOpendayApp;
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new AppShell());
-        }
+public partial class App : Application
+{
+    private readonly AppShell shell;
+    public App(AppShell shell)
+    {
+        InitializeComponent();
+        this.shell = shell;
+        UserAppTheme = AppTheme.Dark;
     }
+
+    protected override Window CreateWindow(IActivationState? activationState) => new(shell);
 }
