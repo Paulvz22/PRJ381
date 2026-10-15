@@ -1,0 +1,7 @@
+<linker>
+  <assembly fullname="BCOpendayApp">
+    <type fullname="BCOpendayApp.Models.FirestoreHotspotDocument" preserve="all" />
+    <type fullname="BCOpendayApp.AR.Data.FirestoreBuildingDocument" preserve="all" />
+    <type fullname="BCOpendayApp.Scanner.Services.ScannerDocument" preserve="all" />
+  </assembly>
+</linker>

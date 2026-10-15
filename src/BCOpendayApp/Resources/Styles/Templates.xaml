@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels">
+
+    <!-- Reusable item templates. Used with: BindableLayout.ItemTemplate="{StaticResource ...}" -->
+
+    <!-- Large card: photo, name, summary, visited status, "Explore" button (Tour + Map pages). -->
+    <DataTemplate x:Key="StopCardTemplate" x:DataType="vm:StopItemViewModel">
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="12">
+                <Image
+                    Source="{Binding Image}"
+                    Aspect="AspectFit"
+                    HeightRequest="160"
+                    SemanticProperties.Description="{Binding Name}" />
+                <Label Text="{Binding Name}" Style="{StaticResource CardTitleLabel}" />
+                <Label Text="{Binding Summary}" Style="{StaticResource MutedLabel}" />
+                <Label Text="{Binding StatusText}" Style="{StaticResource EyebrowLabel}" FontSize="13" />
+                <Button
+                    Text="{Binding ExploreText}"
+                    Command="{Binding ExploreCommand}"
+                    CommandParameter="{Binding Stop}" />
+            </VerticalStackLayout>
+        </Border>
+    </DataTemplate>
+
+    <!-- Compact row: small thumbnail, name, "Explore" button (Locations page). -->
+    <DataTemplate x:Key="StopRowTemplate" x:DataType="vm:StopItemViewModel">
+        <Border Style="{StaticResource Card}">
+            <Grid ColumnDefinitions="76,*" ColumnSpacing="12">
+                <Image
+                    Grid.Column="0"
+                    Source="{Binding Image}"
+                    Aspect="AspectFill"
+                    HeightRequest="78"
+                    SemanticProperties.Description="{Binding Name}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                    <Label Text="{Binding Name}" Style="{StaticResource CardTitleLabel}" FontSize="18" />
+                    <Button
+                        Text="Explore ›"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ExploreCommand}"
+                        CommandParameter="{Binding Stop}" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

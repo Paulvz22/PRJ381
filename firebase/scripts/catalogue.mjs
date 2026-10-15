@@ -34,7 +34,7 @@ export function validateLocations(data) {
 
 export function loadCatalogue() {
   const seed = JSON.parse(readFileSync(new URL('../locations.seed.json', import.meta.url), 'utf8'));
-  const bundled = JSON.parse(readFileSync(new URL('../../MAUIProject/BCOpendayApp/Resources/Raw/locations.json', import.meta.url), 'utf8'));
+  const bundled = JSON.parse(readFileSync(new URL('../../src/BCOpendayApp/Resources/Raw/locations.json', import.meta.url), 'utf8'));
   validateLocations(seed);
   validateLocations(bundled);
   if (JSON.stringify(seed) !== JSON.stringify(bundled)) {

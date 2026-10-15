@@ -171,6 +171,8 @@ Add("generated JSON excludes computed UI-only properties", () =>
     return Task.CompletedTask;
 });
 
+ArTests.Register(Add);
+
 int failures = 0;
 foreach (var (name, run) in tests)
 {

@@ -1,0 +1,23 @@
+using BCOpendayApp.Infrastructure;
+using BCOpendayApp.Scanner;
+using BCOpendayApp.Services;
+
+namespace BCOpendayApp.ViewModels;
+
+public sealed class AboutViewModel : ViewModelBase
+{
+    public AboutViewModel(INavigationService navigation, IDialogService dialogs)
+        : base(navigation, dialogs)
+    {
+        ExploreLocationsCommand = CreateCommand(() => Navigation.GoToAsync(Routes.Locations));
+        HowItWorksCommand = CreateCommand(() => Navigation.GoToAsync(Routes.HowItWorks));
+        StaffScannerCommand = CreateCommand(() => Navigation.GoToAsync(ScannerRoutes.Login));
+    }
+
+    public AsyncCommand ExploreLocationsCommand { get; }
+
+    public AsyncCommand HowItWorksCommand { get; }
+
+    /// <summary>Opens the staff sign-in in front of the building scanner.</summary>
+    public AsyncCommand StaffScannerCommand { get; }
+}

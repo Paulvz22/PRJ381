@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Android everywhere; iOS only when building on a Mac (it cannot be built on Windows without a
+         paired Mac, and restoring the iOS packs on Windows is slow and needlessly path-heavy). -->
+    <TargetFrameworks>net9.0-android</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net9.0-ios</TargetFrameworks>
+    <!-- OPT-IN Windows desktop target (handy for quick UI checks with "Windows Machine" in Visual Studio).
+         It is off by default because it restores the large Windows App SDK packages. Uncomment to use it;
+         Firebase is NOT available on Windows - the app falls back to the bundled locations. -->
+    <!-- <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks> -->
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BCOpendayApp</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- App identity. ApplicationId MUST equal the Android package name registered in Firebase
+         (the "package_name" inside google-services.json), otherwise the Firebase build step fails.
+         It is permanent once the app is published to a store. -->
+    <ApplicationTitle>BC Open Day</ApplicationTitle>
+    <ApplicationId>com.companyname.bcopendayapp</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <!-- Only used by the opt-in Windows target above. -->
+    <WindowsPackageType>None</WindowsPackageType>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- App icon + splash screen (built from the Belgium Campus logo; the logo artwork has a black background). -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.png" Color="#000000" />
+    <MauiSplashScreen Include="Resources\Splash\splash.png" Color="#000000" />
+
+    <!-- Everything in Resources\Images is turned into platform images. Keep ONLY images the app uses
+         here (each one is resized for every screen density, which slows builds and bloats the APK). -->
+    <MauiImage Include="Resources\Images\*" />
+    <MauiFont Include="Resources\Fonts\*" />
+
+    <!-- Raw files shipped as-is. locations.json is the offline tour catalogue (used when Firestore is
+         unavailable, and to fill gaps in Firestore documents). -->
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pinned to the last .NET 9 MAUI release (9.0.120): CommunityToolkit.Maui.Camera 4.0.0 requires it.
+         When the team moves to .NET 10, switch back to $(MauiVersion) and upgrade the Camera package. -->
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+
+    <!-- AR guide + building scanner: live camera preview (CameraX on Android). 4.0.0 is the LAST version
+         that targets .NET 9 - 5.x and later need .NET 10. Do not upgrade without moving to .NET 10. -->
+    <PackageReference Include="CommunityToolkit.Maui.Camera" Version="4.0.0" />
+  </ItemGroup>
+
+  <!-- ===================================================================================================
+       Firebase (Auth + Firestore + Analytics + Crashlytics) is switched on ONLY when the platform config
+       file is present:   Platforms\Android\google-services.json   /   Platforms\iOS\GoogleService-Info.plist
+       Those files are secrets-adjacent and gitignored, so a fresh clone builds WITHOUT Firebase (it uses the
+       bundled offline locations) and skips the very large Firebase native packages - which is also what
+       keeps restore working on machines that hit Windows path-length limits. Code that touches Firebase
+       must be inside  #if FIREBASE_CONFIGURED.
+       Keep the five Plugin.Firebase versions together; upgrade them as a set.
+       =================================================================================================== -->
+  <PropertyGroup Condition="($([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' And Exists('Platforms\Android\google-services.json')) Or ($([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' And Exists('Platforms\iOS\GoogleService-Info.plist'))">
+    <FirebaseConfigured>true</FirebaseConfigured>
+    <DefineConstants>$(DefineConstants);FIREBASE_CONFIGURED</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(FirebaseConfigured)' == 'true'">
+    <PackageReference Include="Plugin.Firebase" Version="4.2.1" />
+    <PackageReference Include="Plugin.Firebase.Analytics" Version="4.0.0" />
+    <PackageReference Include="Plugin.Firebase.Auth" Version="5.0.1" />
+    <PackageReference Include="Plugin.Firebase.Crashlytics" Version="4.0.0" />
+    <PackageReference Include="Plugin.Firebase.Firestore" Version="4.0.0" />
+    <!-- Stops the trimmer removing the Firestore document type, which is only used via reflection. -->
+    <TrimmerRootDescriptor Include="Properties\FirebaseLinker.xml" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' And '$(FirebaseConfigured)' == 'true'">
+    <GoogleServicesJson Include="Platforms\Android\google-services.json" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' And '$(FirebaseConfigured)' == 'true'">
+    <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Link="GoogleService-Info.plist" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' And '$(FirebaseConfigured)' == 'true'">
+    <CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
+  </PropertyGroup>
+
+</Project>

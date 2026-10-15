@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.MapPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:MapViewModel"
+    Title="Map"
+    Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="Campus map" Subtitle="Plan your next stop." />
+
+            <controls:CatalogStatusView />
+
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasCatalogue}">
+
+                <Label Text="{Binding MapTitle}" Style="{StaticResource SectionTitleLabel}" />
+
+                <!-- Section switcher. The "main"/"north"/"west" ids come from CampusCatalog.Maps. -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Button
+                        Grid.Column="0"
+                        Text="Main"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SelectSectionCommand}"
+                        CommandParameter="main">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSectionId}" Value="main">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BcRed}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        Grid.Column="1"
+                        Text="North"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SelectSectionCommand}"
+                        CommandParameter="north">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSectionId}" Value="north">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BcRed}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        Grid.Column="2"
+                        Text="West"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SelectSectionCommand}"
+                        CommandParameter="west">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSectionId}" Value="west">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BcRed}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </Grid>
+
+                <!-- Pan by scrolling, zoom with the slider. The canvas size, the image and the numbered pins
+                     are laid out in MapPage.xaml.cs (pin positions are fractions of the image size). -->
+                <Border Style="{StaticResource Card}" Padding="8">
+                    <ScrollView x:Name="MapViewport" Orientation="Both" HeightRequest="420">
+                        <AbsoluteLayout
+                            x:Name="MapCanvas"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Start">
+                            <Image
+                                x:Name="MapImage"
+                                Aspect="Fill"
+                                SemanticProperties.Description="Campus map" />
+                        </AbsoluteLayout>
+                    </ScrollView>
+                </Border>
+
+                <Label Text="{Binding MapStatus}" Style="{StaticResource MutedLabel}" FontSize="14" />
+
+                <Label Text="Map zoom" Style="{StaticResource SectionTitleLabel}" FontSize="16" />
+                <Slider
+                    Minimum="1"
+                    Maximum="3"
+                    Value="{Binding Zoom}"
+                    SemanticProperties.Description="Campus map zoom" />
+                <Button
+                    Text="Reset map zoom"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ResetZoomCommand}" />
+
+                <Label
+                    Text="Tap a numbered reference pin for location information. Pins follow the supplied map image, not live GPS or turn-by-turn directions."
+                    Style="{StaticResource MutedLabel}" />
+
+                <Label
+                    Text="{Binding RequestedStopMessage}"
+                    TextColor="{StaticResource BcYellow}"
+                    IsVisible="{Binding HasRequestedStopMessage}" />
+                <Label
+                    Text="{Binding UnplacedMessage}"
+                    TextColor="{StaticResource BcYellow}"
+                    IsVisible="{Binding HasUnplacedMessage}" />
+
+                <Label Text="All tour locations" Style="{StaticResource SectionTitleLabel}" />
+                <VerticalStackLayout
+                    Spacing="14"
+                    BindableLayout.ItemsSource="{Binding Stops}"
+                    BindableLayout.ItemTemplate="{StaticResource StopCardTemplate}" />
+
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

@@ -1,0 +1,6 @@
+VALID: 5 unique locations; bundled JSON and seed data match.
+locations/robotics: Robotics Lab (north)
+locations/manufacturing: Manufacturing Lab (north)
+locations/lecture: Lecture Hall (map position not supplied)
+locations/library: Library (main)
+locations/lounge: Student Lounge (main)

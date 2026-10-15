@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.StopInfoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:StopInfoViewModel"
+    Title="Info Points"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="{Binding PageTitle}" Subtitle="Discover this campus space." />
+
+            <controls:CatalogStatusView />
+
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasStop}">
+                <Image
+                    Source="{Binding Image}"
+                    Aspect="AspectFit"
+                    HeightRequest="280"
+                    SemanticProperties.Description="{Binding PageTitle}" />
+                <Label Text="{Binding Highlight}" Style="{StaticResource EyebrowLabel}" FontSize="16" />
+                <Label Text="{Binding Summary}" Style="{StaticResource CardTitleLabel}" FontSize="22" />
+
+                <Border Style="{StaticResource Card}" Stroke="{StaticResource BcYellowBrush}">
+                    <Label Text="{Binding Details}" />
+                </Border>
+                <Label
+                    Text="{Binding PositionNote}"
+                    Style="{StaticResource MutedLabel}"
+                    FontSize="14"
+                    IsVisible="{Binding HasPositionNote}" />
+
+                <Button Text="{Binding VisitButtonText}" Command="{Binding MarkVisitedCommand}" />
+                <Button
+                    Text="{Binding FavouriteButtonText}"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ToggleFavouriteCommand}" />
+                <Button
+                    Text="Listen to description"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ListenCommand}" />
+                <Button
+                    Text="Stop audio"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding StopAudioCommand}" />
+                <Button
+                    Text="{Binding NextStopText}"
+                    Command="{Binding NextStopCommand}"
+                    IsVisible="{Binding HasNextStop}" />
+                <Button
+                    Text="View campus map"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ShowMapCommand}" />
+            </VerticalStackLayout>
+
+            <!-- Shown when the page is opened without a valid stop id. -->
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding IsStopMissing}">
+                <Label Text="Select a location from the campus directory." />
+                <Button Text="View locations" Command="{Binding ChooseLocationCommand}" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

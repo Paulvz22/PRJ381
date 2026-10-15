@@ -12,7 +12,7 @@ node --test tests/data.test.mjs
 node scripts/seed-locations.mjs --dry-run
 ```
 
-`locations.seed.json` and `../MAUIProject/BCOpendayApp/Resources/Raw/locations.json` must match exactly
+`locations.seed.json` and `../src/BCOpendayApp/Resources/Raw/locations.json` must match exactly
 as parsed data. The validator rejects schema drift, duplicate IDs, missing fields, remote image URLs,
 and invalid image coordinates before any cloud write.
 
@@ -47,8 +47,10 @@ all client write types, nested documents, unrelated collections and attempted cl
 ## 3. Review and deploy your rules
 
 Enable Anonymous Authentication and create your default Firestore database in your Firebase project.
-Review any existing project rules before replacing them: this supplied ruleset denies every collection
-except authenticated reads of `locations`.
+Review any existing project rules before replacing them: this ruleset allows signed-in reads of `locations`
+and `buildings`, building writes only for staff accounts listed in `scanners` (see docs/ar-guide.md), and still
+contains the old `member1_verification` test block; everything else is denied. You can also paste the file into
+Firebase console → Firestore → Rules → Publish instead of using the CLI.
 
 ```powershell
 npx firebase login

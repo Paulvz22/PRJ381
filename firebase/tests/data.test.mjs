@@ -42,7 +42,7 @@ test('demo project cannot accidentally target the cloud', () => assert.throws(()
 test('emulator refuses nonlocal endpoints', () => assert.throws(() => validateTarget({ apply: true, project: 'demo-campus' }, 'example.invalid:8080')));
 test('explicit demo project plus local host is accepted', () => assert.doesNotThrow(() => validateTarget({ apply: true, project: 'demo-campus' }, '127.0.0.1:8080')));
 test('C# Firestore DTO field names match the seeded schema', () => {
-  const source = readFileSync(new URL('../../MAUIProject/BCOpendayApp/Models/FirestoreHotspotDocument.cs', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../src/BCOpendayApp/Models/FirestoreHotspotDocument.cs', import.meta.url), 'utf8');
   const keys = [...source.matchAll(/FirestoreProperty\("([^"\n]+)"\)/g)].map(match => match[1]).sort();
   assert.deepEqual(keys, Object.keys(documentFields(data[0])).sort());
 });
