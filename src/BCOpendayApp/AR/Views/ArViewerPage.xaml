@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.AR.Views.ArViewerPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.AR.ViewModels"
+    x:DataType="vm:ArViewerViewModel"
+    Title="AR Campus Guide"
+    BackgroundColor="Black"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <Grid x:Name="Root">
+
+        <!-- Live camera. Started/stopped in ArViewerPage.xaml.cs once the permission is granted. -->
+        <toolkit:CameraView x:Name="Camera" IsVisible="{Binding CameraAllowed}" />
+
+        <!-- Shown instead of the camera when the permission was refused. -->
+        <VerticalStackLayout
+            IsVisible="{Binding ShowNoCamera}"
+            VerticalOptions="Center"
+            Padding="32"
+            Spacing="12">
+            <Label Text="Camera permission is off" Style="{StaticResource CardTitleLabel}" HorizontalTextAlignment="Center" />
+            <Label
+                Text="Building names still appear when you point your phone at them, but you will not see the camera image."
+                Style="{StaticResource MutedLabel}"
+                HorizontalTextAlignment="Center" />
+            <Button Text="Open settings" Style="{StaticResource SecondaryButton}" Command="{Binding OpenSettingsCommand}" />
+        </VerticalStackLayout>
+
+        <!-- Floating building labels, positioned in code-behind every sensor update. -->
+        <AbsoluteLayout x:Name="Overlay" InputTransparent="True" />
+
+        <!-- Aiming reticle: the building under this ring is the one described below. -->
+        <Grid
+            InputTransparent="True"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            WidthRequest="64"
+            HeightRequest="64">
+            <Ellipse x:Name="Reticle" Stroke="White" StrokeThickness="3" Opacity="0.85" />
+            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{StaticResource BcRedBrush}" />
+        </Grid>
+
+        <!-- Top bar -->
+        <Grid
+            VerticalOptions="Start"
+            Padding="16,40,16,0"
+            ColumnDefinitions="Auto,*,Auto"
+            ColumnSpacing="10">
+            <Button
+                Grid.Column="0"
+                Text="✕"
+                FontSize="18"
+                WidthRequest="48"
+                HeightRequest="48"
+                Padding="0"
+                CornerRadius="24"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding CloseCommand}"
+                SemanticProperties.Description="Close the AR guide" />
+            <Border
+                Grid.Column="1"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource CardBorderBrush}"
+                Padding="12,8"
+                VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="AR CAMPUS GUIDE" Style="{StaticResource EyebrowLabel}" FontSize="11" />
+                    <Label Text="{Binding StatusText}" TextColor="White" FontSize="12" LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+            </Border>
+            <Button
+                Grid.Column="2"
+                Text="⟳"
+                FontSize="20"
+                WidthRequest="48"
+                HeightRequest="48"
+                Padding="0"
+                CornerRadius="24"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding RefreshCommand}"
+                SemanticProperties.Description="Reload building data" />
+        </Grid>
+
+        <!-- Bottom area: the building being pointed at, or a hint. -->
+        <VerticalStackLayout VerticalOptions="End" Padding="16,0,16,28" Spacing="10">
+
+            <Border
+                IsVisible="{Binding IsInside}"
+                BackgroundColor="#E615171C"
+                Stroke="{StaticResource BcYellowBrush}"
+                Padding="14,10">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <Label Text="{Binding InsideText}" TextColor="{StaticResource BcYellow}" FontFamily="OpenSansSemibold" />
+            </Border>
+
+            <Border
+                IsVisible="{Binding HasTarget}"
+                BackgroundColor="#F215171C"
+                Stroke="{StaticResource BcRedBrush}"
+                StrokeThickness="2"
+                Padding="18">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="18" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding TargetDistance}" Style="{StaticResource EyebrowLabel}" FontSize="12" />
+                    <Label Text="{Binding TargetName}" Style="{StaticResource CardTitleLabel}" FontSize="22" />
+                    <Label Text="{Binding TargetSummary}" TextColor="White" />
+                    <ScrollView MaximumHeightRequest="180" IsVisible="{Binding ShowDescription}">
+                        <Label Text="{Binding TargetDescription}" Style="{StaticResource MutedLabel}" />
+                    </ScrollView>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button
+                            Grid.Column="0"
+                            Text="{Binding DetailsButtonText}"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding ToggleDetailsCommand}"
+                            IsEnabled="{Binding TargetHasDescription}" />
+                        <Button
+                            Grid.Column="1"
+                            Text="Open tour stop"
+                            Command="{Binding OpenStopCommand}"
+                            IsEnabled="{Binding TargetHasStop}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                IsVisible="{Binding HasHint}"
+                BackgroundColor="#E615171C"
+                Stroke="{StaticResource CardBorderBrush}"
+                Padding="16,12">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding HintText}" TextColor="White" />
+                    <Label Text="{Binding DataMessage}" Style="{StaticResource MutedLabel}" FontSize="12" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </Grid>
+</views:BasePage>

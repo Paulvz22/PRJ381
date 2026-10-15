@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.LocationsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:LocationsViewModel"
+    Title="Locations"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="Campus locations" Subtitle="Explore learning spaces and student life." />
+
+            <controls:CatalogStatusView />
+
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasCatalogue}">
+
+                <SearchBar Placeholder="Search locations" Text="{Binding SearchText}" />
+
+                <Label
+                    Text="No locations match your search."
+                    Style="{StaticResource MutedLabel}"
+                    IsVisible="{Binding HasNoResults}" />
+
+                <VerticalStackLayout
+                    Spacing="12"
+                    BindableLayout.ItemsSource="{Binding Stops}"
+                    BindableLayout.ItemTemplate="{StaticResource StopRowTemplate}" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

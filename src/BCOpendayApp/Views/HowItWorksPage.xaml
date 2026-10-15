@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.HowItWorksPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:HowItWorksViewModel"
+    Title="How it works"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="How it works" Subtitle="Explore at your own pace." />
+
+            <controls:InfoCard
+                Heading="01 · Scan"
+                HeadingColor="{StaticResource BcRed}"
+                Body="Open Start AR Tour and enter the campus location code, or choose a stop from Locations. Live camera scanning is coming soon." />
+            <controls:InfoCard
+                Heading="02 · Explore"
+                HeadingColor="{StaticResource BcRed}"
+                Body="Open a location photo and use Info Points, Gallery and Floor Plan. True 360° viewing will arrive with the AR update." />
+            <controls:InfoCard
+                Heading="03 · Learn"
+                HeadingColor="{StaticResource BcRed}"
+                Body="Listen to narration, read location information and save favourite stops. Mark visited locations to record your progress." />
+
+            <Label
+                Text="Campus photos are included. Camera AR, QR scanning and 360° viewing are not available in this version yet."
+                Style="{StaticResource MutedLabel}" />
+
+            <Button Text="Start exploring" Command="{Binding StartExploringCommand}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

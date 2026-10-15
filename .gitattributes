@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d1e0a9114d277c985d3a02d436e67518182392f8682a5c0590e2ef6f92d9df1b
-size 444
+# Normalise line endings so Windows and macOS teammates don't produce whole-file diffs.
+* text=auto
+
+# Source / config - always text
+*.cs        text diff=csharp
+*.xaml      text
+*.csproj    text
+*.props     text
+*.targets   text
+*.sln       text eol=crlf
+*.json      text
+*.xml       text
+*.svg       text
+*.md        text
+*.plist     text
+*.config    text
+*.editorconfig text
+
+# Binary assets - never touch
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.ttf       binary
+*.otf       binary
+*.zip       binary

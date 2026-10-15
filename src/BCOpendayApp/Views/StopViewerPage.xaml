@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.StopViewerPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:StopViewerViewModel"
+    Title="Tour"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader
+                Title="{Binding PageTitle}"
+                Subtitle="Explore the location and its information points." />
+
+            <controls:CatalogStatusView />
+
+            <!-- Shown when a stop was opened. This is the view the AR / 360° scene will replace. -->
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasStop}">
+                <Image
+                    Source="{Binding Image}"
+                    Aspect="AspectFit"
+                    HeightRequest="300"
+                    SemanticProperties.Description="{Binding PageTitle}" />
+                <Label
+                    Text="PHOTO VIEW · A true 360° scene is not included for this location."
+                    Style="{StaticResource AccentLabel}"
+                    FontSize="13" />
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="14"
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="14">
+                    <Button Grid.Row="0" Grid.Column="0" Text="Info Points" Style="{StaticResource SecondaryButton}" Command="{Binding ShowInfoCommand}" />
+                    <Button Grid.Row="0" Grid.Column="1" Text="Audio" Style="{StaticResource SecondaryButton}" Command="{Binding ListenCommand}" />
+                    <Button Grid.Row="1" Grid.Column="0" Text="Gallery" Style="{StaticResource SecondaryButton}" Command="{Binding ShowGalleryCommand}" />
+                    <Button Grid.Row="1" Grid.Column="1" Text="Floor Plan" Style="{StaticResource SecondaryButton}" Command="{Binding ShowFloorPlanCommand}" />
+                </Grid>
+
+                <Button Text="Stop Audio" Style="{StaticResource SecondaryButton}" Command="{Binding StopAudioCommand}" />
+                <Label
+                    Text="Floor Plan opens the supplied campus map; individual room floor plans have not been supplied."
+                    Style="{StaticResource MutedLabel}"
+                    FontSize="14" />
+                <Button Text="{Binding VisitButtonText}" Command="{Binding MarkVisitedCommand}" />
+            </VerticalStackLayout>
+
+            <!-- Shown when the page is opened without a valid stop id. -->
+            <Button
+                Text="Select a location"
+                Command="{Binding ChooseLocationCommand}"
+                IsVisible="{Binding IsStopMissing}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

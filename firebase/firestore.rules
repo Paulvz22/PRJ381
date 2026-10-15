@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers ---------------------------------------------------------------
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // A building-scanner account: signed in with email + password (not anonymous) AND listed by an admin
+    // in /scanners/{uid}. Admins add that document in the Firebase console; the app cannot.
+    function isScanner() {
+      return signedIn()
+        && request.auth.token.firebase.sign_in_provider == 'password'
+        && exists(/databases/$(database)/documents/scanners/$(request.auth.uid));
+    }
+
+    function validBuilding(id, b) {
+      return id.matches('^[a-z0-9][a-z0-9-]{0,39}$')
+        && b.size() <= 20
+        && b.name is string && b.name.size() >= 1 && b.name.size() <= 80
+        && b.summary is string && b.summary.size() <= 200
+        && b.description is string && b.description.size() <= 2000
+        && b.stopId is string && b.stopId.size() <= 40
+        && b.centerLat is number && b.centerLat >= -90 && b.centerLat <= 90
+        && b.centerLng is number && b.centerLng >= -180 && b.centerLng <= 180
+        && b.radiusMeters is number && b.radiusMeters >= 3 && b.radiusMeters <= 500
+        && b.footprint is string && b.footprint.size() <= 4000
+        && b.isActive is bool
+        && b.updatedAtUnixMs is number
+        && b.updatedBy == request.auth.uid;
+    }
+
+    // ---- Open Day catalogue: signed-in visitors can read, nobody can write from the app.
+    match /locations/{locationId} {
+      allow get, list: if signedIn();
+      allow write: if false;
+    }
+
+    // ---- AR buildings: every visitor (anonymous sign-in) can read; only scanner accounts can write.
+    match /buildings/{buildingId} {
+      allow get, list: if signedIn();
+      allow create, update: if isScanner() && validBuilding(buildingId, request.resource.data);
+      allow delete: if isScanner();
+    }
+
+    // ---- Scanner allow-list: a staff account may only check its OWN entry; only admins (console) write.
+    match /scanners/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+
+    // Earlier Firebase test collection. Any signed-in user (including anonymous visitors) can WRITE here.
+    // Delete this block once nobody uses it.
+    match /member1_verification/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

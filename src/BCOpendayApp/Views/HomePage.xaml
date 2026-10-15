@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:HomeViewModel"
+    Title="Home"
+    Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="BELGIUM CAMPUS" Subtitle="AR TOUR · Explore. Discover. Belong." />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Image
+                        Source="campus_banner.png"
+                        Aspect="AspectFit"
+                        HeightRequest="220"
+                        SemanticProperties.Description="Belgium Campus welcome banner" />
+                    <Label
+                        Text="Welcome to Belgium Campus"
+                        Style="{StaticResource CardTitleLabel}"
+                        FontSize="22" />
+                    <Label
+                        Text="Scan. Explore. Experience."
+                        Style="{StaticResource AccentLabel}"
+                        FontSize="15" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Explore Campus" Style="{StaticResource SectionTitleLabel}" />
+
+            <Grid
+                ColumnDefinitions="*,*"
+                ColumnSpacing="14"
+                RowDefinitions="Auto,Auto,Auto"
+                RowSpacing="14">
+                <controls:MenuTile Grid.Row="0" Grid.Column="0" Text="Start AR Tour" Icon="ar_tour.png" Command="{Binding StartTourCommand}" />
+                <controls:MenuTile Grid.Row="0" Grid.Column="1" Text="Locations" Icon="locations.png" Command="{Binding ShowLocationsCommand}" />
+                <controls:MenuTile Grid.Row="1" Grid.Column="0" Text="Map" Icon="map.png" Command="{Binding ShowMapCommand}" />
+                <controls:MenuTile Grid.Row="1" Grid.Column="1" Text="How It Works" Icon="how_it_works.png" Command="{Binding HowItWorksCommand}" />
+                <controls:MenuTile Grid.Row="2" Grid.Column="0" Text="About Campus" Icon="about.png" Command="{Binding AboutCommand}" />
+                <controls:MenuTile Grid.Row="2" Grid.Column="1" Text="Visitor Info" Icon="bell.png" Command="{Binding VisitorInfoCommand}" />
+            </Grid>
+
+            <Label Text="{Binding JourneyText}" Style="{StaticResource AccentLabel}" />
+            <ProgressBar Progress="{Binding JourneyProgress}" ProgressColor="{StaticResource BcYellow}" />
+
+            <controls:CatalogStatusView />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

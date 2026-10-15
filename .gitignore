@@ -1,70 +1,131 @@
-﻿# ==========================================
-# 1. VISUAL STUDIO & SYSTEM DEPLOYMENTS
-# ==========================================
+# =============================================================================
+# BC Open Day App (.NET MAUI) - .gitignore
+#
+# Rule of thumb:
+#   * ignore only what is GENERATED (build output, caches, IDE state) or SECRET (keys, signing files)
+#   * never ignore anything the app needs in order to build on a fresh clone
+#     (.sln / .csproj / Platforms / Resources / nuget.config / launchSettings.json / manifests ...)
+#
+# Be careful when adding broad patterns (e.g. "*.json", "build/", "Resources/"): a pattern that is
+# too wide silently hides a file that then "works on my machine" but breaks every teammate's clone.
+# Check what a rule hides with:   git check-ignore -v <path>
+# =============================================================================
+
+# ---- Build output -----------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+artifacts/
+# Windows App SDK output (only when the opt-in Windows target is used)
+Generated\ Files/
+*.binlog
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Only used if a teammate opts in to a repo-local NuGet cache (see README, "Path too long")
+/.nuget/
+*.nupkg
+*.snupkg
+
+# ---- Visual Studio / Rider / VS Code ----------------------------------------
 .vs/
+.idea/
 .vscode/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
-*.suo
-Thumbs.db
-.DS_Store
+*.rsuser
+*.userprefs
+*.DotSettings.user
+_ReSharper*/
+*.[Rr]e[Ss]harper
+.fleet/
+TestResults/
+*.coverage
+*.coveragexml
 
-# ==========================================
-# 2. .NET MAUI / VISUAL STUDIO BINARIES
-# ==========================================
-# Exclude compilation output folders
-[Bb]in/
-[Oo]bj/
-Generated\ Files/
-
-# Exclude generated deployment packages
+# ---- Android ----------------------------------------------------------------
 *.apk
+*.aab
 *.ap_
 *.dex
+.gradle/
+local.properties
+.externalNativeBuild/
+.cxx/
 
-# ==========================================
-# 3. UNITY ENGINE GENERATED FILES
-# ==========================================
-# Exclude dynamic engine locks, metrics, and asset caches
-UnityProject/Library/
-UnityProject/Temp/
-UnityProject/Obj/
-UnityProject/Build/
-UnityProject/Builds/
-UnityProject/Logs/
-UnityProject/UserSettings/
-MemoryCaptures/
-RecordingBackups/
+# ---- iOS / macOS ------------------------------------------------------------
+*.ipa
+*.dSYM/
+*.dSYM.zip
+xcuserdata/
+DerivedData/
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Exclude tracking files built on editor start
-UnityProject/Assets/AssetStoreTools*
+# ---- Windows ----------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Exclude editor scratch files
+# ---- Editor scratch files ---------------------------------------------------
 *.tmp
-*.userprefs
-*.pidb
-*.booproj
-*.svd
-*.pdb
-*.opendb
-*.VC.db
+*.swp
+*~
+*.bak
+*.orig
+*.rej
 
-# Exclude Unity internal build deployment manifests
-*.assetbundle
-*.manifest
+# ---- SECRETS: never commit --------------------------------------------------
+# Firebase app config. The csproj only enables Firebase when these files EXIST, so a clone without them
+# still builds (offline data). Share them privately and place them at
+#   src/BCOpendayApp/Platforms/Android/google-services.json  /  Platforms/iOS/GoogleService-Info.plist
+# The * also catches browser-download copies such as "google-services(2).json".
+google-services*.json
+GoogleService-Info*.plist
+# Admin SDK / service-account keys (used by the seeder - keep them OUTSIDE the repo anyway)
+firebase-adminsdk*.json
+service-account*.json
+serviceAccount*.json
+*-service-account*.json
 
-# ==========================================
-# 4. EXPLICIT PRESERVATION RULES
-# ==========================================
-# Ensure Git NEVER ignores your .sln, .slnx, or .csproj files inside MAUIProject
-!MAUIProject/*.sln
-!MAUIProject/*.slnx
-!MAUIProject/**/*.csproj
+# ---- Firebase / Node tooling (firebase/) -------------------------------------
+# package.json and package-lock.json ARE committed.
+node_modules/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+npm-debug.log*
 
-# Ensure Git tracks the critical binding library needed to link Unity to MAUI
-!MAUIProject/UnityAndroidBinding/Jars/*.jar
-!MAUIProject/UnityAndroidBinding/Jars/*.aar
+# Local-only configuration. Commit settings that are safe to share in a normal file
+# (e.g. appsettings.json); put anything secret in one of these instead.
+appsettings.local.json
+appsettings.*.local.json
+secrets.json
+.env
+.env.*
+!.env.example
 
-MAUIProject/BCOpendayApp/appsettings.json
+# Signing material (Android keystores, Apple certificates / profiles)
+*.keystore
+*.jks
+*.pfx
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+*.snk
+signing.properties
+keystore.properties
+
+# ---- Leftovers from the scrapped Unity attempt ------------------------------
+# Unity is no longer part of this repo. This only stops an old local copy being committed by accident.
+/UnityProject/
+/UnityAndroidBinding/

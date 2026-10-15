@@ -1,0 +1,67 @@
+[
+  {
+    "id": "robotics",
+    "name": "Robotics Lab",
+    "image": "roboticslab.png",
+    "summary": "Discover automation and intelligent machines.",
+    "description": "Explore how sensors, software and robotic systems work together. Ask your tour guide about practical projects and safe demonstrations. Do not touch equipment without permission.",
+    "highlight": "Industrial robot arm • Sensors • Automation",
+    "sortOrder": 1,
+    "mapSection": "north",
+    "x": 0.765,
+    "y": 0.726,
+    "positionNote": "Reference point for The Hangar on the North Campus map, read at pixel 1117, 527; not a surveyed or GPS position. The Robotics Lab and Manufacturing Lab are both in The Hangar, so their pins are drawn side by side."
+  },
+  {
+    "id": "manufacturing",
+    "name": "Manufacturing Lab",
+    "image": "manufacturinglab.png",
+    "summary": "See ideas become practical prototypes.",
+    "description": "Discover the connection between design, technology and manufacturing. During your visit, ask how students develop and test prototypes. Follow staff instructions around machinery.",
+    "highlight": "Design • Prototyping • Precision",
+    "sortOrder": 2,
+    "mapSection": "north",
+    "x": 0.827,
+    "y": 0.726,
+    "positionNote": "Reference point for The Hangar on the North Campus map, read at pixel 1117, 527; not a surveyed or GPS position. The Robotics Lab and Manufacturing Lab are both in The Hangar, so their pins are drawn side by side."
+  },
+  {
+    "id": "lecture",
+    "name": "Lecture Hall",
+    "image": "lecturehall.png",
+    "summary": "Step inside a collaborative learning space.",
+    "description": "Explore the spaces where students discuss concepts, solve problems and present their work. Ask your guide about the student learning experience and classroom support.",
+    "highlight": "Learning • Collaboration • Presentations",
+    "sortOrder": 3,
+    "mapSection": "",
+    "x": null,
+    "y": null,
+    "positionNote": "Lecture rooms are spread across the Main and North campus buildings, so this stop has no single map pin. Ask your guide which room your session is in."
+  },
+  {
+    "id": "library",
+    "name": "Library",
+    "image": "library.png",
+    "summary": "Find your space to study and research.",
+    "description": "Discover the study environment and ask staff about learning resources. Keep noise low, respect students who are studying and ask before taking photographs.",
+    "highlight": "Research • Reading • Quiet study",
+    "sortOrder": 4,
+    "mapSection": "main",
+    "x": 0.551,
+    "y": 0.126,
+    "positionNote": "Reference point read from the Library label on the supplied Main Campus map; not a surveyed or GPS position."
+  },
+  {
+    "id": "lounge",
+    "name": "Student Lounge",
+    "image": "studentlounge.png",
+    "summary": "Get a feel for life beyond the classroom.",
+    "description": "Explore a place to meet fellow students and take a break. Ask your guide about clubs, student leadership and campus activities that interest you.",
+    "highlight": "Community • Clubs • Student life",
+    "sortOrder": 5,
+    "mapSection": "main",
+    "x": 0.693,
+    "y": 0.735,
+    "positionNote": "Reference point for the best-known Student Lounge on the Main Campus map, read at pixel 948, 1443; not a surveyed or GPS position. There are other student lounges on campus."
+  }
+]

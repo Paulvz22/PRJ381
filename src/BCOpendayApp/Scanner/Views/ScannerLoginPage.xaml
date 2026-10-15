@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Scanner.Views.ScannerLoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.Scanner.ViewModels"
+    x:DataType="vm:ScannerLoginViewModel"
+    Title="Staff scanner"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="Building scanner" Subtitle="Campus staff only. Sign in with your scanner account." />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Staff email" Style="{StaticResource EyebrowLabel}" />
+                    <Entry
+                        Text="{Binding Email}"
+                        Keyboard="Email"
+                        Placeholder="scanner@example.com"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False" />
+                    <Label Text="Password" Style="{StaticResource EyebrowLabel}" />
+                    <Entry
+                        Text="{Binding Password}"
+                        IsPassword="True"
+                        Placeholder="Scanner password"
+                        ReturnType="Go"
+                        ReturnCommand="{Binding SignInCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource BcRed}" IsVisible="{Binding HasError}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource BcRed}" />
+
+            <Button Text="Unlock scanner" Command="{Binding SignInCommand}" />
+            <Button Text="Cancel" Style="{StaticResource SecondaryButton}" Command="{Binding CancelCommand}" />
+
+            <Label
+                Text="Scanner accounts are created by the project admin in the Firebase console. The password is checked by Firebase, and only listed accounts can change building data."
+                Style="{StaticResource MutedLabel}"
+                FontSize="13" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

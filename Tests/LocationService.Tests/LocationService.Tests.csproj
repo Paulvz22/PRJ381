@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <!-- Compile the ACTUAL repository sources, not a rewritten copy of their behavior. -->
+  <ItemGroup>
+    <Compile Include="../../src/BCOpendayApp/Models/Hotspot.cs" Link="Source/Hotspot.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/CampusCatalog.cs" Link="Source/CampusCatalog.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/ILocationService.cs" Link="Source/ILocationService.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/ILocationRemoteSource.cs" Link="Source/ILocationRemoteSource.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/LocationJsonContext.cs" Link="Source/LocationJsonContext.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/HotspotValidation.cs" Link="Source/HotspotValidation.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/LocationService.cs" Link="Source/LocationService.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Locations/MapGeometry.cs" Link="Source/MapGeometry.cs" />
+    <!-- AR guide: pure maths + data loading (no MAUI types). -->
+    <Compile Include="../../src/BCOpendayApp/AR/Models/BuildingAnchor.cs" Link="Source/AR/BuildingAnchor.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Geo/GeoMath.cs" Link="Source/AR/GeoMath.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Geo/BuildingTargeting.cs" Link="Source/AR/BuildingTargeting.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Geo/SensorMath.cs" Link="Source/AR/SensorMath.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingValidation.cs" Link="Source/AR/BuildingValidation.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingJsonContext.cs" Link="Source/AR/BuildingJsonContext.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Data/IBuildingStores.cs" Link="Source/AR/IBuildingStores.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingRepository.cs" Link="Source/AR/BuildingRepository.cs" />
+    <None Include="../../src/BCOpendayApp/Resources/Raw/buildings.json" Link="buildings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/BCOpendayApp/Resources/Raw/locations.json" Link="locations.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

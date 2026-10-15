@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.VisitorInfoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    Title="Visitor information"
+    Shell.TabBarIsVisible="False">
+
+    <!-- Static content only, so this page has no view model. -->
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader
+                Title="Visitor information"
+                Subtitle="Helpful reminders for your campus visit." />
+
+            <controls:InfoCard
+                Heading="Welcome"
+                Body="Start at reception and ask staff about today's programme. This page contains general guidance, not live event notices." />
+            <controls:InfoCard
+                Heading="Explore safely"
+                Body="Follow your guide's instructions. Ask permission before entering restricted areas or touching laboratory equipment." />
+            <controls:InfoCard
+                Heading="Need assistance?"
+                Body="Speak to a campus staff member or return to reception for help and accessibility support." />
+            <controls:InfoCard
+                Heading="Your progress stays with you"
+                Body="Favourites and visited stops are retained when you close and reopen the app on this device." />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

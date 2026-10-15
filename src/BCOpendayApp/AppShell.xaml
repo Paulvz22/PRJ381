@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="BCOpendayApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    Title="Belgium Campus Open Day"
+    FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="{StaticResource NavBarBackground}"
+    Shell.ForegroundColor="White"
+    Shell.TitleColor="White"
+    Shell.TabBarBackgroundColor="{StaticResource NavBarBackground}"
+    Shell.TabBarForegroundColor="{StaticResource BcRed}"
+    Shell.TabBarTitleColor="{StaticResource BcRed}"
+    Shell.TabBarUnselectedColor="{StaticResource BcTextMuted}">
+
+    <!-- Pages that are pushed on top of these (locations, stop details ...) are registered in
+         AppShell.xaml.cs. Route names live in Services/Routes.cs - keep them in sync. -->
+
+    <!-- Splash: outside the TabBar so it shows no tabs. It moves on to //home by itself. -->
+    <ShellContent Route="splash" ContentTemplate="{DataTemplate views:SplashPage}" />
+
+    <TabBar>
+        <ShellContent Title="Home" Icon="tab_home" Route="home" ContentTemplate="{DataTemplate views:HomePage}" />
+        <ShellContent Title="Tour" Icon="tab_tour" Route="tour" ContentTemplate="{DataTemplate views:TourPage}" />
+        <ShellContent Title="Map" Icon="tab_map" Route="map" ContentTemplate="{DataTemplate views:MapPage}" />
+    </TabBar>
+
+</Shell>
