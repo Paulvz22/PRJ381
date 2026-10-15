@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.SplashPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:SplashViewModel"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="28" Spacing="18" VerticalOptions="Center">
+            <Image
+                Source="belgium_logo.png"
+                Aspect="AspectFit"
+                HeightRequest="190"
+                SemanticProperties.Description="Belgium Campus logo" />
+            <Label
+                Text="BELGIUM CAMPUS"
+                Style="{StaticResource PageTitleLabel}"
+                FontSize="28"
+                HorizontalTextAlignment="Center" />
+            <Label
+                Text="AR CAMPUS TOUR"
+                Style="{StaticResource CardTitleLabel}"
+                TextColor="{StaticResource BcRed}"
+                FontSize="23"
+                HorizontalTextAlignment="Center" />
+            <Label Text="Explore. Discover. Belong." HorizontalTextAlignment="Center" />
+            <ActivityIndicator IsRunning="True" />
+            <Button Text="Explore campus" Command="{Binding EnterCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

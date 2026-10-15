@@ -1,5 +1,0 @@
-<linker>
-  <assembly fullname="BCOpendayApp">
-    <type fullname="BCOpendayApp.Models.FirestoreHotspotDocument" preserve="all" />
-  </assembly>
-</linker>

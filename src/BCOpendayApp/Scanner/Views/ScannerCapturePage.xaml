@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Scanner.Views.ScannerCapturePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.Scanner.ViewModels"
+    x:DataType="vm:ScannerCaptureViewModel"
+    Title="Scan building"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="{Binding PageTitle}" Subtitle="Record where the building is so the AR guide can recognise it." />
+
+            <!-- 1. Details shown to visitors -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="1 · WHAT VISITORS SEE" Style="{StaticResource EyebrowLabel}" />
+                    <Entry Text="{Binding Name}" Placeholder="Building name (e.g. Main Building)" MaxLength="80" />
+                    <Entry Text="{Binding Summary}" Placeholder="One-line summary for the AR label" MaxLength="200" />
+                    <Editor
+                        Text="{Binding Description}"
+                        Placeholder="More information (shown under “More info”)"
+                        AutoSize="TextChanges"
+                        MaxLength="2000"
+                        MinimumHeightRequest="90"
+                        TextColor="White"
+                        PlaceholderColor="{StaticResource BcTextMuted}" />
+                    <Picker
+                        Title="Linked tour stop (optional)"
+                        ItemsSource="{Binding StopOptions}"
+                        SelectedItem="{Binding SelectedStop}"
+                        TextColor="White"
+                        TitleColor="{StaticResource BcTextMuted}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Visible to visitors" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding IsActive}" OnColor="{StaticResource BcRed}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 2. Where it is -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="2 · WHERE IT IS" Style="{StaticResource EyebrowLabel}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" Text="Outline (best)" Style="{StaticResource SecondaryButton}" Command="{Binding UseOutlineCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsOutlineMode}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource BcRed}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1" Text="Centre + radius" Style="{StaticResource SecondaryButton}" Command="{Binding UseRadiusCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsRadiusMode}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource BcRed}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+
+                    <Label Text="{Binding ModeInstructions}" Style="{StaticResource MutedLabel}" FontSize="14" />
+                    <Label Text="{Binding GpsText}" TextColor="{StaticResource BcYellow}" FontFamily="OpenSansSemibold" />
+
+                    <Button Text="{Binding CaptureButtonText}" Command="{Binding CapturePointCommand}" />
+                    <ProgressBar Progress="{Binding SampleProgress}" ProgressColor="{StaticResource BcYellow}" IsVisible="{Binding IsSampling}" />
+
+                    <!-- Outline mode -->
+                    <VerticalStackLayout Spacing="8" IsVisible="{Binding IsOutlineMode}">
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Points}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CapturedPointItem">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" TextColor="White" />
+                                        <Label Grid.Column="1" Text="{Binding Details}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="Undo last corner" Style="{StaticResource SecondaryButton}" Command="{Binding UndoPointCommand}" />
+                            <Button Grid.Column="1" Text="Fix corner order" Style="{StaticResource SecondaryButton}" Command="{Binding FixOrderCommand}" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Centre + radius mode -->
+                    <VerticalStackLayout Spacing="8" IsVisible="{Binding IsRadiusMode}">
+                        <Label Text="{Binding CentreText}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                        <Label Text="{Binding RadiusText}" TextColor="White" />
+                        <Slider Minimum="3" Maximum="150" Value="{Binding RadiusMeters}" MinimumTrackColor="{StaticResource BcRed}" />
+                    </VerticalStackLayout>
+
+                    <Label Text="{Binding ShapeText}" TextColor="White" />
+                    <Label Text="{Binding ShapeWarning}" TextColor="{StaticResource BcRed}" IsVisible="{Binding HasShapeWarning}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 3. Save -->
+            <Button Text="Save and upload" Command="{Binding SaveCommand}" />
+            <Button Text="Test in AR" Style="{StaticResource SecondaryButton}" Command="{Binding TestCommand}" />
+            <Button
+                Text="Delete this building"
+                Style="{StaticResource SecondaryButton}"
+                TextColor="{StaticResource BcRed}"
+                Command="{Binding DeleteCommand}"
+                IsVisible="{Binding IsEditing}" />
+
+            <Label
+                Text="Tip: GPS is accurate to roughly 3-10 m on most phones. Capturing every corner (instead of a circle) and waiting for “good” GPS gives the most reliable recognition."
+                Style="{StaticResource MutedLabel}"
+                FontSize="13" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

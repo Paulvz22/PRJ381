@@ -1,0 +1,33 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36015.10
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BCOpendayApp", "src\BCOpendayApp\BCOpendayApp.csproj", "{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocationService.Tests", "Tests\LocationService.Tests\LocationService.Tests.csproj", "{5C2A8E61-3F0B-4B7E-9C1D-7A4E2B9F6D13}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB79B422-1D4B-4F51-908E-02BD4DBA0FAF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{5C2A8E61-3F0B-4B7E-9C1D-7A4E2B9F6D13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C2A8E61-3F0B-4B7E-9C1D-7A4E2B9F6D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C2A8E61-3F0B-4B7E-9C1D-7A4E2B9F6D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C2A8E61-3F0B-4B7E-9C1D-7A4E2B9F6D13}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1B9E7D33-81E6-45C8-B5C7-5512F2B6EF64}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.StartTourPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:StartTourViewModel"
+    Title="AR Tour"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="Start AR Tour" Subtitle="Choose a campus stop to begin exploring." />
+
+            <!-- AR guide entry. The AR view itself lives in the AR/ folder (ArViewerPage). -->
+            <Border Style="{StaticResource Card}" Stroke="{StaticResource BcRedBrush}" StrokeThickness="2">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                    <Image
+                        Source="campus_banner.png"
+                        Aspect="AspectFill"
+                        HeightRequest="160"
+                        Opacity="0.75"
+                        SemanticProperties.Description="Belgium Campus" />
+                    <Label
+                        Grid.Row="1"
+                        Text="Point your camera at a campus building to see its name and information."
+                        Style="{StaticResource CardTitleLabel}"
+                        FontSize="18" />
+                    <Button Grid.Row="2" Text="Open AR camera" Command="{Binding OpenArCommand}" />
+                </Grid>
+            </Border>
+
+            <Label
+                Text="Works best outdoors. The guide uses your camera, GPS and compass - allow camera and location when asked. You can also enter a location code below or choose from the directory."
+                Style="{StaticResource MutedLabel}" />
+
+            <Entry
+                Placeholder="e.g. BC-ROBOTICS"
+                Text="{Binding Code}"
+                MaxLength="40"
+                ReturnType="Go"
+                ReturnCommand="{Binding OpenCodeCommand}"
+                IsSpellCheckEnabled="False"
+                IsTextPredictionEnabled="False" />
+
+            <Button Text="Enter Code Manually" Command="{Binding OpenCodeCommand}" />
+            <Button
+                Text="Choose from locations"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding ChooseLocationCommand}" />
+            <Button
+                Text="How scanning works"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding HowItWorksCommand}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

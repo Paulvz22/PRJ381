@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:AboutViewModel"
+    Title="About"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader
+                Title="About the campus experience"
+                Subtitle="Learn more during your open-day visit." />
+
+            <Image
+                Source="belgium_logo.png"
+                Aspect="AspectFit"
+                HeightRequest="180"
+                SemanticProperties.Description="Belgium Campus logo" />
+
+            <Border Style="{StaticResource Card}">
+                <Label Text="Welcome to Belgium Campus ITversity. This visitor guide introduces campus learning spaces and student life through a self-guided photo tour." />
+            </Border>
+
+            <Label Text="Make your visit count" Style="{StaticResource PageTitleLabel}" FontSize="23" />
+            <Label Text="Ask campus staff about programmes, entry requirements, fees, student support and the application process. Current official information should be confirmed with the admissions team." />
+
+            <Button Text="Explore locations" Command="{Binding ExploreLocationsCommand}" />
+            <Button
+                Text="How this guide works"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding HowItWorksCommand}" />
+
+            <!-- Staff only: password-protected building scanner (Scanner/ folder). -->
+            <Button
+                Text="Staff: building scanner"
+                Style="{StaticResource SecondaryButton}"
+                FontSize="12"
+                Opacity="0.7"
+                Command="{Binding StaffScannerCommand}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

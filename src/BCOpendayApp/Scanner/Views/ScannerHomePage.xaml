@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Scanner.Views.ScannerHomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.Scanner.ViewModels"
+    x:DataType="vm:ScannerHomeViewModel"
+    Title="Building scanner"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader Title="Building scanner" Subtitle="{Binding SignedInAs}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Grid.Column="0" Text="+ Scan building" Command="{Binding NewBuildingCommand}" />
+                <Button Grid.Column="1" Text="Test in AR" Style="{StaticResource SecondaryButton}" Command="{Binding TestArCommand}" />
+            </Grid>
+
+            <!-- Scans that are saved on this phone but not uploaded yet. -->
+            <Border Style="{StaticResource Card}" Stroke="{StaticResource BcYellowBrush}" IsVisible="{Binding HasPending}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Not uploaded yet" Style="{StaticResource CardTitleLabel}" TextColor="{StaticResource BcYellow}" />
+                    <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Pending}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScannedBuildingItem">
+                                <Label Text="{Binding Name}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Button Text="Upload drafts" Command="{Binding UploadDraftsCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Scanned buildings" Style="{StaticResource SectionTitleLabel}" />
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="13" />
+            <Label
+                Text="Nothing scanned yet. Tap “Scan building” while standing outside the first building."
+                Style="{StaticResource MutedLabel}"
+                IsVisible="{Binding HasNoBuildings}" />
+
+            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Buildings}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ScannedBuildingItem">
+                        <Border Style="{StaticResource Card}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" RowDefinitions="Auto,Auto">
+                                <Label Text="{Binding Name}" Style="{StaticResource CardTitleLabel}" FontSize="18" />
+                                <Label Grid.Column="1" Text="{Binding Badge}" Style="{StaticResource EyebrowLabel}" FontSize="11" VerticalOptions="Center" />
+                                <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Details}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                            </Grid>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ScannerHomeViewModel}}, Path=EditCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Button Text="Refresh list" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" />
+            <Button Text="Export buildings.json" Style="{StaticResource SecondaryButton}" Command="{Binding ExportCommand}" />
+            <Label
+                Text="Export, then replace src/BCOpendayApp/Resources/Raw/buildings.json with the file to ship these buildings inside the next app build (for visitors who are offline on their first launch)."
+                Style="{StaticResource MutedLabel}"
+                FontSize="13" />
+            <Button Text="Sign out and lock" Command="{Binding SignOutCommand}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>
