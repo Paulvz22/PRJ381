@@ -15,6 +15,10 @@
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.VIBRATE" />
+  <!-- Not used by the app. CommunityToolkit.Maui.Camera 4.0.0 asks for the microphone whenever a CameraView starts
+       (it supports video recording), and .NET MAUI throws - crashing the app - if a requested permission is not
+       declared here. Visitors may refuse it; the camera preview still works. -->
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <!-- required="false": the rest of the app still installs on devices without these. -->
   <uses-feature android:name="android.hardware.camera" android:required="false" />
   <uses-feature android:name="android.hardware.location.gps" android:required="false" />

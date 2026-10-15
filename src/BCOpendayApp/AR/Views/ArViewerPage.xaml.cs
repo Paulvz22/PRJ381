@@ -2,6 +2,7 @@ using BCOpendayApp.AR.Geo;
 using BCOpendayApp.AR.Sensors;
 using BCOpendayApp.AR.ViewModels;
 using BCOpendayApp.Views;
+using CommunityToolkit.Maui.Views;
 
 namespace BCOpendayApp.AR.Views;
 
@@ -22,6 +23,8 @@ public partial class ArViewerPage : BasePage
     private readonly SolidColorBrush red = AppBrush("BcRed");
     private readonly SolidColorBrush white = new(Colors.White);
     private CancellationTokenSource? cameraStart;
+    private CameraView? camera;
+    private bool isOnScreen;
 
     public ArViewerPage(ArViewerViewModel viewModel)
     {
@@ -34,11 +37,16 @@ public partial class ArViewerPage : BasePage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        isOnScreen = true;
         ArPlatform.EnterArMode();
 
         try
         {
-            if (await viewModel.StartAsync())
+            // Asks for location and camera ONE AT A TIME and waits for the answers before anything touches the camera.
+            var cameraAllowed = await viewModel.StartAsync();
+
+            // The visitor may have left the page while a permission prompt was open.
+            if (cameraAllowed && isOnScreen)
             {
                 await StartCameraAsync();
             }
@@ -51,10 +59,11 @@ public partial class ArViewerPage : BasePage
 
     protected override void OnDisappearing()
     {
+        isOnScreen = false;
         cameraStart?.Cancel();
         try
         {
-            Camera.StopCameraPreview();
+            camera?.StopCameraPreview();
         }
         catch (Exception exception)
         {
@@ -68,18 +77,33 @@ public partial class ArViewerPage : BasePage
 
     private async Task StartCameraAsync()
     {
+        if (camera is null)
+        {
+            // First time: create the CameraView now that the camera permission is granted. When its handler
+            // connects, CommunityToolkit.Maui.Camera 4.0.0 asks for camera + microphone itself (camera is already
+            // granted so that returns at once; the microphone is declared in the manifest only because the toolkit
+            // asks for it - its answer does not matter) and then starts the preview on its own.
+            camera = new CameraView();
+            CameraHost.Content = camera;
+            return;
+        }
+
+        // Coming back to the page: the view is already connected, so just restart the preview.
         cameraStart?.Cancel();
         cameraStart = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var token = cameraStart.Token;
 
-        // The camera handler can still be connecting when the page first appears: try twice.
         for (var attempt = 1; ; attempt++)
         {
             try
             {
-                var cameras = await Camera.GetAvailableCameras(token);
-                Camera.SelectedCamera = cameras.FirstOrDefault(c => c.Position.ToString() == "Rear") ?? cameras.FirstOrDefault();
-                await Camera.StartCameraPreview(token);
+                if (camera.SelectedCamera is null)
+                {
+                    var cameras = await camera.GetAvailableCameras(token);
+                    camera.SelectedCamera = cameras.FirstOrDefault(c => c.Position.ToString() == "Rear") ?? cameras.FirstOrDefault();
+                }
+
+                await camera.StartCameraPreview(token);
                 return;
             }
             catch (Exception) when (attempt < 2 && !token.IsCancellationRequested)
