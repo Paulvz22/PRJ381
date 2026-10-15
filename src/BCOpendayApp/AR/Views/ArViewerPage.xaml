@@ -3,7 +3,6 @@
     x:Class="BCOpendayApp.AR.Views.ArViewerPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:views="clr-namespace:BCOpendayApp.Views"
     xmlns:vm="clr-namespace:BCOpendayApp.AR.ViewModels"
     x:DataType="vm:ArViewerViewModel"
@@ -14,8 +13,10 @@
 
     <Grid x:Name="Root">
 
-        <!-- Live camera. Started/stopped in ArViewerPage.xaml.cs once the permission is granted. -->
-        <toolkit:CameraView x:Name="Camera" IsVisible="{Binding CameraAllowed}" />
+        <!-- Live camera. The CameraView is created in ArViewerPage.xaml.cs only AFTER the permission prompts are
+             answered: the toolkit's camera asks for permissions itself the moment it exists, which clashed with the
+             location prompt and crashed the app. Do not put a CameraView back in this XAML. -->
+        <ContentView x:Name="CameraHost" IsVisible="{Binding CameraAllowed}" />
 
         <!-- Shown instead of the camera when the permission was refused. -->
         <VerticalStackLayout
