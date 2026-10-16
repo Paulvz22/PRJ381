@@ -16,8 +16,15 @@ public partial class ArViewerPage : BasePage
 {
     private const int MaxLabels = 8;
 
+    // Ground chevrons: one every 10 m along the line to the destination, at most 5, drawn from the visitor position.
+    private const int MaxGroundArrows = 5;
+    private const double GroundArrowSpacingMeters = 10;
+    private const double GroundArrowEyeHeightMeters = 1.5;
+
     private readonly ArViewerViewModel viewModel;
+    private readonly IArSensorService sensors;
     private readonly Dictionary<string, (Border Card, Label Name, Label Distance)> labels = new();
+    private readonly List<Label> groundArrows = new();
     private readonly (double FocalOverShort, double FocalOverLong) optics = ArPlatform.BackCameraOptics();
     private readonly SolidColorBrush yellow = AppBrush("BcYellow");
     private readonly SolidColorBrush red = AppBrush("BcRed");
@@ -27,10 +34,11 @@ public partial class ArViewerPage : BasePage
     private Border? destinationMarker;
     private bool isOnScreen;
 
-    public ArViewerPage(ArViewerViewModel viewModel)
+    public ArViewerPage(ArViewerViewModel viewModel, IArSensorService sensors)
     {
         InitializeComponent();
         BindingContext = this.viewModel = viewModel;
+        this.sensors = sensors;
         viewModel.FrameChanged += (_, _) => DrawOverlay();
         Overlay.SizeChanged += (_, _) => DrawOverlay();
     }
@@ -128,6 +136,7 @@ public partial class ArViewerPage : BasePage
                 destinationMarker.IsVisible = false;
             }
 
+            HideGroundArrows(0);
             return;
         }
 
@@ -181,6 +190,133 @@ public partial class ArViewerPage : BasePage
         Reticle.Stroke = viewModel.HasTarget ? yellow : white;
 
         DrawDestinationMarker(pose, focal, cx, horizonY, width, height);
+        DrawGroundArrows(pose, focal, cx, horizonY, width, height);
+    }
+
+    /// <summary>
+    /// Chevrons on the ground along the straight line from the visitor to the destination, one every 10 m (at
+    /// most 5), shown only while guidance is active. They use the same pinhole projection as the building labels:
+    /// x from the angle to the camera heading, y below the horizon by atan2(eye height, distance). Far chevrons
+    /// are smaller and fainter, those off the screen or under the banner/buttons/card are hidden. The labels are
+    /// pooled (created once, shown/hidden) like the building labels.
+    /// </summary>
+    private void DrawGroundArrows(CameraPose pose, double focal, double cx, double horizonY, double width, double height)
+    {
+        if (!viewModel.IsGuidanceActive
+            || sensors.Position is not { } user
+            || viewModel.DestinationId is not { } destinationId)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        // The destination is normally in the sightings (within range); fall back to the Go to... list otherwise.
+        var destination = viewModel.Sightings.FirstOrDefault(s => s.Building.Id == destinationId)?.Building
+            ?? viewModel.Destinations.FirstOrDefault(d => d.Building.Id == destinationId)?.Building;
+        if (destination is null)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        // Build the line in the flat local plane (metres east/north around the visitor), then map each step back.
+        var toDestination = GeoMath.ToLocal(user, destination.Center);
+        if (toDestination.Length < GroundArrowSpacingMeters)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        var unit = toDestination * (1 / toDestination.Length);
+        var shown = 0;
+        for (var i = 0; i < MaxGroundArrows; i++)
+        {
+            var distance = (i + 1) * GroundArrowSpacingMeters;
+            if (distance > toDestination.Length)
+            {
+                break;
+            }
+
+            var point = GeoMath.FromLocal(user, unit * distance);
+            var offset = GeoMath.AngleDifference(GeoMath.BearingDegrees(user, point), pose.Heading);
+            if (Math.Abs(offset) > 75)
+            {
+                continue;
+            }
+
+            var x = cx + focal * Math.Tan(GeoMath.ToRadians(offset));
+            var y = horizonY + focal * Math.Tan(Math.Atan2(GroundArrowEyeHeightMeters, distance));
+
+            // Fade across the five slots: the nearest is the biggest and boldest, the fifth is small and faint.
+            var fade = Math.Clamp(
+                1 - (distance - GroundArrowSpacingMeters) / (MaxGroundArrows * GroundArrowSpacingMeters - GroundArrowSpacingMeters),
+                0,
+                1);
+            var size = 12 + 10 * fade;
+            var opacity = 0.4 + 0.5 * fade;
+
+            // Hide anything that would leave the screen or sit under the top banner, Go to/Stop buttons or bottom card.
+            var half = size;
+            if (x - half < 0 || x + half > width || y - half < 0 || y + half > height || IsOverReservedArea(y, half))
+            {
+                continue;
+            }
+
+            var arrow = GetGroundArrow(shown);
+            arrow.FontSize = size;
+            arrow.Opacity = opacity;
+            AbsoluteLayout.SetLayoutBounds(arrow, new Rect(x, y, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+            arrow.AnchorX = 0.5;
+            arrow.AnchorY = 0.5;
+            arrow.TranslationX = -(arrow.Width > 0 ? arrow.Width : size) / 2;
+            arrow.TranslationY = -(arrow.Height > 0 ? arrow.Height : size) / 2;
+            arrow.IsVisible = true;
+            shown++;
+        }
+
+        HideGroundArrows(shown);
+    }
+
+    private Label GetGroundArrow(int index)
+    {
+        while (groundArrows.Count <= index)
+        {
+            var arrow = new Label
+            {
+                Text = "▼",
+                FontFamily = "OpenSansSemibold",
+                TextColor = AppColor("BcYellow"),
+                InputTransparent = true,
+            };
+
+            Overlay.Children.Add(arrow);
+            groundArrows.Add(arrow);
+        }
+
+        return groundArrows[index];
+    }
+
+    private void HideGroundArrows(int shown)
+    {
+        for (var i = shown; i < groundArrows.Count; i++)
+        {
+            groundArrows[i].IsVisible = false;
+        }
+    }
+
+    /// <summary>True when a chevron centred at <paramref name="centerY"/> would sit over the top or bottom panels.</summary>
+    private bool IsOverReservedArea(double centerY, double halfHeight) =>
+        Overlaps(NavigationPanel, centerY, halfHeight) || Overlaps(BottomPanel, centerY, halfHeight);
+
+    private static bool Overlaps(VisualElement panel, double centerY, double halfHeight)
+    {
+        if (!panel.IsVisible || panel.Height <= 0)
+        {
+            return false;
+        }
+
+        const double padding = 8;
+        return centerY + halfHeight >= panel.Y - padding && centerY - halfHeight <= panel.Y + panel.Height + padding;
     }
 
     /// <summary>

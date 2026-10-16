@@ -92,6 +92,7 @@
 
         <!-- Navigate to a building: banner with the instruction, an arrow that turns, and the inline list. -->
         <VerticalStackLayout
+            x:Name="NavigationPanel"
             VerticalOptions="Start"
             Margin="16,104,16,0"
             Spacing="8">
@@ -181,7 +182,7 @@
         </VerticalStackLayout>
 
         <!-- Bottom area: the building being pointed at, or a hint. -->
-        <VerticalStackLayout VerticalOptions="End" Padding="16,0,16,28" Spacing="10">
+        <VerticalStackLayout x:Name="BottomPanel" VerticalOptions="End" Padding="16,0,16,28" Spacing="10">
 
             <Border
                 IsVisible="{Binding IsInside}"
