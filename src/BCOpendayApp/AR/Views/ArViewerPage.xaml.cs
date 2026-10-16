@@ -24,6 +24,7 @@ public partial class ArViewerPage : BasePage
     private readonly SolidColorBrush white = new(Colors.White);
     private CancellationTokenSource? cameraStart;
     private CameraView? camera;
+    private Border? destinationMarker;
     private bool isOnScreen;
 
     public ArViewerPage(ArViewerViewModel viewModel)
@@ -115,10 +116,18 @@ public partial class ArViewerPage : BasePage
 
     private void DrawOverlay()
     {
+        // The arrow always shows where the destination is relative to the camera, even before a GPS fix.
+        NavArrow.Rotation = viewModel.NavTurnDegrees;
+
         var width = Overlay.Width;
         var height = Overlay.Height;
         if (viewModel.Pose is not { } pose || width <= 0 || height <= 0)
         {
+            if (destinationMarker is not null)
+            {
+                destinationMarker.IsVisible = false;
+            }
+
             return;
         }
 
@@ -170,6 +179,70 @@ public partial class ArViewerPage : BasePage
         }
 
         Reticle.Stroke = viewModel.HasTarget ? yellow : white;
+
+        DrawDestinationMarker(pose, focal, cx, horizonY, width, height);
+    }
+
+    /// <summary>
+    /// When the destination is roughly in front of the camera (within ~40°) a marker is placed over it with
+    /// the same pinhole projection the building labels use.
+    /// </summary>
+    private void DrawDestinationMarker(CameraPose pose, double focal, double cx, double horizonY, double width, double height)
+    {
+        var marker = GetDestinationMarker();
+        var sighting = viewModel.IsNavigating && viewModel.DestinationId is { } id
+            ? viewModel.Sightings.FirstOrDefault(s => s.Building.Id == id)
+            : null;
+
+        if (sighting is null)
+        {
+            marker.IsVisible = false;
+            return;
+        }
+
+        var offset = sighting.OffsetFrom(pose.Heading);
+        if (Math.Abs(offset) > 40)
+        {
+            marker.IsVisible = false;
+            return;
+        }
+
+        var x = cx + focal * Math.Tan(GeoMath.ToRadians(offset));
+        var elevation = Math.Atan2(12, Math.Max(sighting.DistanceMeters, 5));
+        var y = Math.Clamp(horizonY - focal * Math.Tan(elevation), 120, Math.Max(120, height - 260));
+
+        AbsoluteLayout.SetLayoutBounds(marker, new Rect(x, y, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+        marker.AnchorX = 0.5;
+        marker.TranslationX = -(marker.Width > 0 ? marker.Width : 60) / 2;
+        marker.IsVisible = true;
+    }
+
+    private Border GetDestinationMarker()
+    {
+        if (destinationMarker is not null)
+        {
+            return destinationMarker;
+        }
+
+        destinationMarker = new Border
+        {
+            BackgroundColor = Color.FromArgb("#CC0D0D0D"),
+            Stroke = yellow,
+            StrokeThickness = 2,
+            Padding = new Thickness(10, 4),
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
+            Content = new Label
+            {
+                Text = "▼",
+                TextColor = AppColor("BcYellow"),
+                FontFamily = "OpenSansSemibold",
+                FontSize = 22,
+            },
+            InputTransparent = true,
+        };
+
+        Overlay.Children.Add(destinationMarker);
+        return destinationMarker;
     }
 
     private (Border Card, Label Name, Label Distance) GetLabel(string id)
