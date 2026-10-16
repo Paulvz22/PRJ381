@@ -21,6 +21,7 @@
     <Compile Include="../../src/BCOpendayApp/AR/Geo/GeoMath.cs" Link="Source/AR/GeoMath.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/BuildingTargeting.cs" Link="Source/AR/BuildingTargeting.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/SensorMath.cs" Link="Source/AR/SensorMath.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Nav/NavGuidance.cs" Link="Source/AR/NavGuidance.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingValidation.cs" Link="Source/AR/BuildingValidation.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingJsonContext.cs" Link="Source/AR/BuildingJsonContext.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/IBuildingStores.cs" Link="Source/AR/IBuildingStores.cs" />
