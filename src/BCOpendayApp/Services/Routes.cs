@@ -20,6 +20,7 @@ public static class Routes
     public const string StopGallery = "stop-gallery";
     public const string HowItWorks = "how-it-works";
     public const string About = "about";
+    public const string Pano = "pano";
     public const string VisitorInfo = "visitor-info";
 
     /// <summary>Name of the query parameter that carries a stop id to the stop pages.</summary>

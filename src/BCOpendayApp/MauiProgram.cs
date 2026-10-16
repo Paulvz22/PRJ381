@@ -156,5 +156,6 @@ public static class MauiProgram
         .AddTransient<StopGalleryPage>()
         .AddTransient<HowItWorksPage>()
         .AddTransient<AboutPage>()
+        .AddTransient<PanoramaPage>()
         .AddTransient<VisitorInfoPage>();
 }
