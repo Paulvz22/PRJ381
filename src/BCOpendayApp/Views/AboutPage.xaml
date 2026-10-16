@@ -35,6 +35,10 @@
                 Text="How this guide works"
                 Style="{StaticResource SecondaryButton}"
                 Command="{Binding HowItWorksCommand}" />
+            <Button
+                Text="360 virtual tour"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding VirtualTourCommand}" />
 
             <!-- Staff only: password-protected building scanner (Scanner/ folder). -->
             <Button
