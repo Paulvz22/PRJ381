@@ -1,47 +1,51 @@
 {
-  "default": {
-    "firstScene": "viewpoint-1",
-    "autoLoad": true,
-    "sceneFadeDuration": 1200,
-    "showFullscreenCtrl": false,
-    "author": "BC Openday demo tour"
-  },
-  "scenes": {
-    "viewpoint-1": {
-      "type": "equirectangular",
-      "title": "Sample viewpoint 1",
-      "panorama": "scenes/scene-a.jpg",
-      "yaw": 0,
-      "pitch": 0,
-      "hotSpots": [
-        {
-          "pitch": -14,
-          "yaw": 90,
-          "type": "scene",
-          "text": "Go to viewpoint 2",
-          "sceneId": "viewpoint-2",
-          "targetYaw": 90,
-          "targetPitch": -14
-        }
-      ]
-    },
-    "viewpoint-2": {
-      "type": "equirectangular",
-      "title": "Sample viewpoint 2",
-      "panorama": "scenes/scene-b.jpg",
-      "yaw": 90,
-      "pitch": 0,
-      "hotSpots": [
-        {
-          "pitch": -14,
-          "yaw": -90,
-          "type": "scene",
-          "text": "Back to viewpoint 1",
-          "sceneId": "viewpoint-1",
-          "targetYaw": -90,
-          "targetPitch": -14
-        }
-      ]
-    }
-  }
+    "default":  {
+                    "firstScene":  "spot-1",
+                    "autoLoad":  true,
+                    "sceneFadeDuration":  1200,
+                    "showFullscreenCtrl":  false,
+                    "hotSpotDebug":  true
+                },
+    "scenes":  {
+                   "spot-1":  {
+                                  "type":  "equirectangular",
+                                  "title":  "Spot 1",
+                                  "panorama":  "scenes/spot-1.jpg",
+                                  "haov":  360,
+                                  "vaov":  44.7,
+                                  "vOffset":  0,
+                                  "hfov":  90,
+                                  "yaw":  0,
+                                  "pitch":  0,
+                                  "hotSpots":  [
+                                                   {
+                                                       "pitch":  0,
+                                                       "yaw":  0,
+                                                       "type":  "scene",
+                                                       "text":  "Next: Spot 2",
+                                                       "sceneId":  "spot-2"
+                                                   }
+                                               ]
+                              },
+                   "spot-2":  {
+                                  "type":  "equirectangular",
+                                  "title":  "Spot 2",
+                                  "panorama":  "scenes/spot-2.jpg",
+                                  "haov":  360,
+                                  "vaov":  36.8,
+                                  "vOffset":  0,
+                                  "hfov":  90,
+                                  "yaw":  0,
+                                  "pitch":  0,
+                                  "hotSpots":  [
+                                                   {
+                                                       "pitch":  0,
+                                                       "yaw":  180,
+                                                       "type":  "scene",
+                                                       "text":  "Back: Spot 1",
+                                                       "sceneId":  "spot-1"
+                                                   }
+                                               ]
+                              }
+               }
 }
