@@ -393,7 +393,7 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
             while (DateTimeOffset.UtcNow - started < SampleTime)
             {
                 SampleProgress = (DateTimeOffset.UtcNow - started) / SampleTime;
-                if (sampler.Count >= 6 && sampler.BestAccuracy <= GoodAccuracyMeters / 1.5)
+                if (sampler.CanStop(DateTimeOffset.UtcNow - started))
                 {
                     break; // excellent fix already - no need to wait the full time
                 }

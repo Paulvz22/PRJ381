@@ -173,6 +173,7 @@ Add("generated JSON excludes computed UI-only properties", () =>
 
 ArTests.Register(Add);
 NavTests.Register(Add);
+SamplerTests.Register(Add);
 
 int failures = 0;
 foreach (var (name, run) in tests)
