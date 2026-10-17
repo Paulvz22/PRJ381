@@ -194,8 +194,9 @@ public partial class ArViewerPage : BasePage
     }
 
     /// <summary>
-    /// Chevrons on the ground along the straight line from the visitor to the destination, one every 10 m (at
-    /// most 5), shown only while guidance is active. They use the same pinhole projection as the building labels:
+    /// Chevrons on the ground from the visitor toward the next waypoint of the active route (a graph node when the
+    /// walking graph is loaded, otherwise the destination centre), one every 10 m (at most 5), shown only while
+    /// guidance is active. They use the same pinhole projection as the building labels:
     /// x from the angle to the camera heading, y below the horizon by atan2(eye height, distance). Far chevrons
     /// are smaller and fainter, those off the screen or under the banner/buttons/card are hidden. The labels are
     /// pooled (created once, shown/hidden) like the building labels.
@@ -204,35 +205,26 @@ public partial class ArViewerPage : BasePage
     {
         if (!viewModel.IsGuidanceActive
             || sensors.Position is not { } user
-            || viewModel.DestinationId is not { } destinationId)
+            || viewModel.NextWaypoint is not { } waypoint)
         {
             HideGroundArrows(0);
             return;
         }
 
-        // The destination is normally in the sightings (within range); fall back to the Go to... list otherwise.
-        var destination = viewModel.Sightings.FirstOrDefault(s => s.Building.Id == destinationId)?.Building
-            ?? viewModel.Destinations.FirstOrDefault(d => d.Building.Id == destinationId)?.Building;
-        if (destination is null)
+        // Build the current leg in the flat local plane (metres east/north around the visitor), then map each step back.
+        var toWaypoint = GeoMath.ToLocal(user, waypoint);
+        if (toWaypoint.Length < GroundArrowSpacingMeters)
         {
             HideGroundArrows(0);
             return;
         }
 
-        // Build the line in the flat local plane (metres east/north around the visitor), then map each step back.
-        var toDestination = GeoMath.ToLocal(user, destination.Center);
-        if (toDestination.Length < GroundArrowSpacingMeters)
-        {
-            HideGroundArrows(0);
-            return;
-        }
-
-        var unit = toDestination * (1 / toDestination.Length);
+        var unit = toWaypoint * (1 / toWaypoint.Length);
         var shown = 0;
         for (var i = 0; i < MaxGroundArrows; i++)
         {
             var distance = (i + 1) * GroundArrowSpacingMeters;
-            if (distance > toDestination.Length)
+            if (distance > toWaypoint.Length)
             {
                 break;
             }
