@@ -127,21 +127,48 @@ public sealed class PositionFilter
     public void Reset() => hasValue = false;
 }
 
+/// <summary>The sampler's averaged fix plus how much the kept fixes actually spread around it.</summary>
+public readonly record struct SamplerStats(
+    GeoPoint Point,
+    double AccuracyMeters,
+    double SpreadMeters,
+    int KeptCount,
+    int RejectedCount,
+    int SampleCount);
+
 /// <summary>
-/// Averages several GPS fixes into one point for the scanner, weighting each fix by 1/accuracy² and ignoring
-/// fixes that are much worse than the best one seen.
+/// Averages several GPS fixes into one point for the scanner, weighting each fix by 1/accuracy², ignoring fixes
+/// that are much worse than the best one seen, and dropping positional outliers before averaging. Reports the
+/// spread actually measured so a quiet, precise handheld fix is never mistaken for a good one.
 /// </summary>
 public sealed class LocationSampler
 {
+    /// <summary>How many good fixes must stay before sampling may stop early.</summary>
+    public const int StopMinimumFixes = 10;
+
+    /// <summary>Best combined accuracy that counts as good enough to stop early.</summary>
+    public const double StopMaximumAccuracyMeters = 6;
+
+    /// <summary>How long to sample before it may stop early.</summary>
+    public static readonly TimeSpan StopMinimumDuration = TimeSpan.FromSeconds(8);
+
     private readonly List<(GeoPoint Point, double Accuracy)> samples = new();
 
     public int Count => samples.Count;
 
     public double BestAccuracy => samples.Count == 0 ? double.PositiveInfinity : samples.Min(s => s.Accuracy);
 
+    /// <summary>Standard deviation (metres) of the kept fixes around their mean (0 when empty).</summary>
+    public double SpreadMeters => Analyze()?.SpreadMeters ?? 0;
+
+    public int KeptCount => Analyze()?.KeptCount ?? 0;
+
+    public int RejectedCount => Analyze()?.RejectedCount ?? 0;
+
     public void Add(GeoPoint point, double accuracyMeters)
     {
-        if (double.IsFinite(point.Lat) && double.IsFinite(point.Lng) && accuracyMeters > 0)
+        if (double.IsFinite(point.Lat) && double.IsFinite(point.Lng)
+            && double.IsFinite(accuracyMeters) && accuracyMeters > 0)
         {
             samples.Add((point, accuracyMeters));
         }
@@ -150,31 +177,89 @@ public sealed class LocationSampler
     public void Clear() => samples.Clear();
 
     /// <summary>The weighted average and its combined accuracy, or null with no usable samples.</summary>
-    public (GeoPoint Point, double AccuracyMeters)? Result()
+    public (GeoPoint Point, double AccuracyMeters)? Result() =>
+        Analyze() is { } stats ? (stats.Point, stats.AccuracyMeters) : null;
+
+    /// <summary>Whether there are enough good fixes, lasting long enough, to stop sampling early.</summary>
+    public bool CanStop(TimeSpan elapsed) =>
+        Analyze() is { } stats
+        && stats.KeptCount >= StopMinimumFixes
+        && elapsed >= StopMinimumDuration
+        && stats.AccuracyMeters <= StopMaximumAccuracyMeters;
+
+    /// <summary>The averaged fix and the measured spread, or null with no usable samples.</summary>
+    public SamplerStats? Analyze()
     {
         if (samples.Count == 0)
         {
             return null;
         }
 
+        // First pass: ignore fixes reported much worse than the best one (the existing accuracy filter).
         var limit = Math.Max(BestAccuracy * 2, 5);
         var used = samples.Where(s => s.Accuracy <= limit).ToList();
-        var origin = used[0].Point;
-        double sumWeight = 0, x = 0, y = 0;
-        foreach (var (point, accuracy) in used)
+
+        // Then drop positional outliers: fixes further than max(3 m, 2 × the median distance) from the mean.
+        var firstMean = WeightedMean(used[0].Point, used, out _);
+        var distances = used.Select(s => DistanceMeters(firstMean, s.Point)).ToList();
+        var threshold = Math.Max(3.0, 2 * Median(distances));
+        var kept = new List<(GeoPoint Point, double Accuracy)>();
+        for (var i = 0; i < used.Count; i++)
         {
-            var weight = 1 / (accuracy * accuracy);
-            var local = ToLocal(origin, point);
-            x += local.X * weight;
-            y += local.Y * weight;
-            sumWeight += weight;
+            if (distances[i] <= threshold)
+            {
+                kept.Add(used[i]);
+            }
         }
 
-        var mean = FromLocal(origin, new Vec2(x / sumWeight, y / sumWeight));
+        if (kept.Count == 0)
+        {
+            kept = used; // never drop everything
+        }
 
-        // Averaging independent fixes improves accuracy, but GPS errors are correlated over short periods,
-        // so do not claim better than half of the best single fix.
-        var combined = Math.Max(1 / Math.Sqrt(sumWeight), BestAccuracy * 0.5);
-        return (mean, combined);
+        var mean = WeightedMean(kept[0].Point, kept, out var sumWeight);
+
+        // Averaging independent fixes improves accuracy, but GPS errors are correlated over short periods, so do
+        // not claim better than half of the best single fix - nor better than the spread actually measured.
+        var spread = WeightedSpread(mean, kept);
+        var combined = Math.Max(Math.Max(1 / Math.Sqrt(sumWeight), BestAccuracy * 0.5), spread);
+        return new SamplerStats(mean, combined, spread, kept.Count, samples.Count - kept.Count, samples.Count);
+    }
+
+    private static GeoPoint WeightedMean(GeoPoint origin, IReadOnlyList<(GeoPoint Point, double Accuracy)> points, out double sumWeight)
+    {
+        double weight = 0, x = 0, y = 0;
+        foreach (var (point, accuracy) in points)
+        {
+            var w = 1 / (accuracy * accuracy);
+            var local = ToLocal(origin, point);
+            x += local.X * w;
+            y += local.Y * w;
+            weight += w;
+        }
+
+        sumWeight = weight;
+        return FromLocal(origin, new Vec2(x / weight, y / weight));
+    }
+
+    private static double WeightedSpread(GeoPoint mean, IReadOnlyList<(GeoPoint Point, double Accuracy)> points)
+    {
+        double weight = 0, sum = 0;
+        foreach (var (point, accuracy) in points)
+        {
+            var w = 1 / (accuracy * accuracy);
+            var distance = DistanceMeters(mean, point);
+            sum += w * distance * distance;
+            weight += w;
+        }
+
+        return weight > 0 ? Math.Sqrt(sum / weight) : 0;
+    }
+
+    private static double Median(List<double> values)
+    {
+        var sorted = values.OrderBy(v => v).ToList();
+        var middle = sorted.Count / 2;
+        return sorted.Count % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
     }
 }

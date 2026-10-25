@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.PanoramaPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    Title="360 virtual tour"
+    Shell.TabBarIsVisible="False">
+
+    <Grid>
+        <VerticalStackLayout
+            x:Name="LoadingState"
+            Spacing="12"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+            <ActivityIndicator
+                IsRunning="True"
+                Color="{StaticResource BcRed}"
+                HorizontalOptions="Center" />
+            <Label
+                Text="Loading the 360° tour..."
+                Style="{StaticResource MutedLabel}"
+                HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <WebView x:Name="TourWebView" IsVisible="False" />
+    </Grid>
+</views:BasePage>

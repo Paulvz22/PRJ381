@@ -90,8 +90,99 @@
                 SemanticProperties.Description="Reload building data" />
         </Grid>
 
+        <!-- Navigate to a building: banner with the instruction, an arrow that turns, and the inline list. -->
+        <VerticalStackLayout
+            x:Name="NavigationPanel"
+            VerticalOptions="Start"
+            Margin="16,104,16,0"
+            Spacing="8">
+
+            <Border
+                IsVisible="{Binding IsNavigating}"
+                BackgroundColor="#F215171C"
+                Stroke="{StaticResource BcRedBrush}"
+                StrokeThickness="2"
+                Padding="14,10">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" IsVisible="{Binding IsGuidanceActive}">
+                        <Label
+                            x:Name="NavArrow"
+                            Grid.Column="0"
+                            Text="↑"
+                            FontFamily="OpenSansSemibold"
+                            FontSize="30"
+                            TextColor="{StaticResource BcYellow}"
+                            VerticalOptions="Center"
+                            SemanticProperties.Description="Direction to walk" />
+                        <Label
+                            Grid.Column="1"
+                            Text="{Binding NavInstruction}"
+                            Style="{StaticResource CardTitleLabel}"
+                            FontSize="18"
+                            VerticalOptions="Center" />
+                        <Label
+                            Grid.Column="2"
+                            Text="{Binding NavDistanceText}"
+                            Style="{StaticResource AccentLabel}"
+                            FontSize="18"
+                            VerticalOptions="Center" />
+                    </Grid>
+                    <Label
+                        Text="{Binding NavArrivedText}"
+                        IsVisible="{Binding HasArrived}"
+                        FontFamily="OpenSansSemibold"
+                        FontSize="18"
+                        TextColor="{StaticResource BcYellow}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Button
+                    Grid.Column="0"
+                    Text="Go to..."
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding GoToCommand}" />
+                <Button
+                    Grid.Column="1"
+                    Text="Stop"
+                    Command="{Binding StopCommand}"
+                    IsVisible="{Binding IsNavigating}" />
+            </Grid>
+
+            <Border
+                IsVisible="{Binding IsChoosingDestination}"
+                BackgroundColor="#F215171C"
+                Stroke="{StaticResource CardBorderBrush}"
+                Padding="12">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Where do you want to go?" Style="{StaticResource CardTitleLabel}" FontSize="16" />
+                    <ScrollView MaximumHeightRequest="260">
+                        <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Destinations}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DestinationOption">
+                                    <Button
+                                        Text="{Binding Label}"
+                                        Command="{Binding SelectCommand}"
+                                        CommandParameter="{Binding Building}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        HorizontalOptions="Fill" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+
         <!-- Bottom area: the building being pointed at, or a hint. -->
-        <VerticalStackLayout VerticalOptions="End" Padding="16,0,16,28" Spacing="10">
+        <VerticalStackLayout x:Name="BottomPanel" VerticalOptions="End" Padding="16,0,16,28" Spacing="10">
 
             <Border
                 IsVisible="{Binding IsInside}"

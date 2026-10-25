@@ -37,7 +37,10 @@ public sealed record StopOption(string Id, string Name)
 /// </summary>
 public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
 {
-    private static readonly TimeSpan SampleTime = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan SampleTime = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan NoFixTimeout = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan GpsRetryInterval = TimeSpan.FromSeconds(10);
+    private const int MaxGpsRetries = 3;
     private const double GoodAccuracyMeters = 6;
     private const double PoorAccuracyMeters = 15;
 
@@ -51,6 +54,13 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
     private BuildingAnchor? original;
     private string requestedId = string.Empty;
     private bool sensorsRunning;
+    private bool positionSubscribed;
+    private bool sensorStartSucceeded;
+    private int appearanceVersion;
+    private int startVersion;
+    private Task<bool>? sensorStart;
+    private CancellationTokenSource? gpsMonitor;
+    private long fixSequence;
     private bool isOutlineMode = true;
     private string name = string.Empty;
     private string summary = string.Empty;
@@ -248,6 +258,18 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
 
     public override async void OnAppearing()
     {
+        var version = ++appearanceVersion;
+        var monitor = ReplaceGpsMonitor();
+
+        if (sensors.RawFix is { } existing)
+        {
+            GpsText = DescribeGpsFix(existing);
+        }
+        else
+        {
+            GpsText = WaitingGpsText(0);
+        }
+
         try
         {
             if (!auth.IsUnlocked)
@@ -258,24 +280,45 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
             }
 
             await LoadStopOptionsAsync();
+            if (!IsCurrentAppearance(version))
+            {
+                return;
+            }
+
             if (original is null && requestedId.Length > 0)
             {
                 await LoadExistingAsync(requestedId);
+                if (!IsCurrentAppearance(version))
+                {
+                    return;
+                }
             }
 
             var (_, location) = await ArPlatform.RequestPermissionsAsync(needCamera: false);
+            if (!IsCurrentAppearance(version))
+            {
+                return;
+            }
+
             if (!location)
             {
                 GpsText = "Location permission is off - the scanner cannot work without it.";
                 return;
             }
 
-            if (!sensorsRunning)
+            var baseline = fixSequence;
+            EnsurePositionSubscribed();
+
+            var started = await EnsureSensorsStartedAsync() && sensorsRunning;
+            if (!IsCurrentAppearance(version))
             {
-                sensorsRunning = true;
-                sensors.PositionChanged += OnPositionChanged;
-                await sensors.StartAsync();
+                return;
             }
+
+            var hasFix = sensors.RawFix is not null;
+            GpsText = sensors.RawFix is { } fix ? DescribeGpsFix(fix) : WaitingGpsText(0);
+
+            _ = MonitorGpsAsync(baseline, started, hasFix, monitor.Token);
         }
         catch (Exception exception)
         {
@@ -285,16 +328,207 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
 
     public override void OnDisappearing()
     {
+        appearanceVersion++;
+
+        var monitor = gpsMonitor;
+        gpsMonitor = null;
+        monitor?.Cancel();
+        monitor?.Dispose();
+
+        UnsubscribePosition();
+        StopSensors();
+    }
+
+    private bool IsCurrentAppearance(int version) => version == appearanceVersion;
+
+    private void EnsurePositionSubscribed()
+    {
+        if (positionSubscribed)
+        {
+            return;
+        }
+
+        positionSubscribed = true;
+        sensors.PositionChanged += OnPositionChanged;
+    }
+
+    private void UnsubscribePosition()
+    {
+        if (!positionSubscribed)
+        {
+            return;
+        }
+
+        positionSubscribed = false;
+        sensors.PositionChanged -= OnPositionChanged;
+    }
+
+    private async Task<bool> EnsureSensorsStartedAsync()
+    {
+        if (sensorStart is { } pending)
+        {
+            return await pending;
+        }
+
         if (sensorsRunning)
         {
-            sensorsRunning = false;
-            sensors.PositionChanged -= OnPositionChanged;
+            return sensorStartSucceeded;
+        }
+
+        var myStart = ++startVersion;
+        sensorsRunning = true;
+        sensorStartSucceeded = false;
+        var task = StartSensorsAsync();
+        sensorStart = task;
+
+        bool started;
+        try
+        {
+            started = await task;
+        }
+        finally
+        {
+            if (ReferenceEquals(sensorStart, task))
+            {
+                sensorStart = null;
+            }
+        }
+
+        if (myStart != startVersion)
+        {
+            return false;
+        }
+
+        sensorStartSucceeded = started;
+        return started;
+    }
+
+    private async Task<bool> StartSensorsAsync()
+    {
+        try
+        {
+            return await sensors.StartAsync();
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+            return false;
+        }
+    }
+
+    private void StopSensors()
+    {
+        startVersion++;
+        if (!sensorsRunning)
+        {
+            return;
+        }
+
+        sensorsRunning = false;
+        sensorStartSucceeded = false;
+        try
+        {
             sensors.Stop();
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    }
+
+    private async Task<bool> RestartSensorsAsync(CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        StopSensors();
+        token.ThrowIfCancellationRequested();
+        return await EnsureSensorsStartedAsync();
+    }
+
+    private CancellationTokenSource ReplaceGpsMonitor()
+    {
+        var next = new CancellationTokenSource();
+        var previous = gpsMonitor;
+        gpsMonitor = next;
+        previous?.Cancel();
+        previous?.Dispose();
+        return next;
+    }
+
+    private async Task MonitorGpsAsync(long baseline, bool startSucceeded, bool hasFix, CancellationToken token)
+    {
+        var monitorStart = DateTimeOffset.UtcNow;
+        var attemptStart = monitorStart;
+        var lastRetryAt = DateTimeOffset.MinValue;
+        var currentStarted = startSucceeded;
+        var retries = 0;
+
+        if (hasFix && currentStarted)
+        {
+            return;
+        }
+
+        try
+        {
+            while (true)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (!hasFix && fixSequence > baseline)
+                {
+                    return;
+                }
+
+                var now = DateTimeOffset.UtcNow;
+                var failed = !currentStarted || (!hasFix && now - attemptStart >= NoFixTimeout);
+                if (!failed)
+                {
+                    if (!hasFix)
+                    {
+                        GpsText = WaitingGpsText((int)(now - monitorStart).TotalSeconds);
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), token);
+                    continue;
+                }
+
+                if (retries >= MaxGpsRetries)
+                {
+                    GpsText = "No GPS yet - move to open sky and wait";
+                    return;
+                }
+
+                if (retries > 0 && now - lastRetryAt < GpsRetryInterval)
+                {
+                    if (!hasFix)
+                    {
+                        GpsText = WaitingGpsText((int)(now - monitorStart).TotalSeconds);
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), token);
+                    continue;
+                }
+
+                retries++;
+                currentStarted = await RestartSensorsAsync(token);
+                token.ThrowIfCancellationRequested();
+                attemptStart = DateTimeOffset.UtcNow;
+                lastRetryAt = attemptStart;
+
+                if (hasFix && currentStarted)
+                {
+                    return;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The page disappeared, or a new appearance replaced this monitor.
         }
     }
 
     private void OnPositionChanged(object? sender, EventArgs e)
     {
+        fixSequence++;
         if (sensors.RawFix is not { } fix)
         {
             return;
@@ -305,11 +539,19 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
             sampler.Add(fix.Point, fix.AccuracyMeters);
         }
 
+        GpsText = DescribeGpsFix(fix);
+    }
+
+    private static string DescribeGpsFix((GeoPoint Point, double AccuracyMeters) fix)
+    {
         var quality = fix.AccuracyMeters <= GoodAccuracyMeters ? "good"
             : fix.AccuracyMeters <= PoorAccuracyMeters ? "OK"
             : "poor - wait or move away from walls/trees";
-        GpsText = $"GPS ±{fix.AccuracyMeters:0} m ({quality})";
+        return $"GPS ±{fix.AccuracyMeters:0} m ({quality})";
     }
+
+    private static string WaitingGpsText(int seconds) =>
+        $"Waiting for GPS... {Math.Max(0, seconds)}s (go outside / open sky helps)";
 
     private async Task LoadStopOptionsAsync()
     {
@@ -393,17 +635,12 @@ public sealed class ScannerCaptureViewModel : ViewModelBase, IQueryAttributable
             while (DateTimeOffset.UtcNow - started < SampleTime)
             {
                 SampleProgress = (DateTimeOffset.UtcNow - started) / SampleTime;
-                if (sampler.Count >= 6 && sampler.BestAccuracy <= GoodAccuracyMeters / 1.5)
+                if (sampler.CanStop(DateTimeOffset.UtcNow - started))
                 {
                     break; // excellent fix already - no need to wait the full time
                 }
 
                 await Task.Delay(250);
-            }
-
-            if (sampler.Count == 0 && sensors.RawFix is { } fix)
-            {
-                sampler.Add(fix.Point, fix.AccuracyMeters);
             }
         }
         finally

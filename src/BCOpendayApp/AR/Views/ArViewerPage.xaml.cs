@@ -16,20 +16,30 @@ public partial class ArViewerPage : BasePage
 {
     private const int MaxLabels = 8;
 
+    // Ground chevrons: one every 6 m along the active route, up to 40 m ahead, at most 8.
+    private const int MaxGroundArrows = 8;
+    private const double GroundArrowSpacingMeters = 6;
+    private const double GroundArrowAheadMeters = 40;
+    private const double GroundArrowEyeHeightMeters = 1.5;
+
     private readonly ArViewerViewModel viewModel;
+    private readonly IArSensorService sensors;
     private readonly Dictionary<string, (Border Card, Label Name, Label Distance)> labels = new();
+    private readonly List<Label> groundArrows = new();
     private readonly (double FocalOverShort, double FocalOverLong) optics = ArPlatform.BackCameraOptics();
     private readonly SolidColorBrush yellow = AppBrush("BcYellow");
     private readonly SolidColorBrush red = AppBrush("BcRed");
     private readonly SolidColorBrush white = new(Colors.White);
     private CancellationTokenSource? cameraStart;
     private CameraView? camera;
+    private Border? destinationMarker;
     private bool isOnScreen;
 
-    public ArViewerPage(ArViewerViewModel viewModel)
+    public ArViewerPage(ArViewerViewModel viewModel, IArSensorService sensors)
     {
         InitializeComponent();
         BindingContext = this.viewModel = viewModel;
+        this.sensors = sensors;
         viewModel.FrameChanged += (_, _) => DrawOverlay();
         Overlay.SizeChanged += (_, _) => DrawOverlay();
     }
@@ -115,10 +125,19 @@ public partial class ArViewerPage : BasePage
 
     private void DrawOverlay()
     {
+        // The arrow always shows where the destination is relative to the camera, even before a GPS fix.
+        NavArrow.Rotation = viewModel.NavTurnDegrees;
+
         var width = Overlay.Width;
         var height = Overlay.Height;
         if (viewModel.Pose is not { } pose || width <= 0 || height <= 0)
         {
+            if (destinationMarker is not null)
+            {
+                destinationMarker.IsVisible = false;
+            }
+
+            HideGroundArrows(0);
             return;
         }
 
@@ -170,6 +189,276 @@ public partial class ArViewerPage : BasePage
         }
 
         Reticle.Stroke = viewModel.HasTarget ? yellow : white;
+
+        DrawDestinationMarker(pose, focal, cx, horizonY, width, height);
+        DrawGroundArrows(pose, focal, cx, horizonY, width, height);
+    }
+
+    /// <summary>
+    /// Chevrons on the ground along the active route, one every 6 m up to 40 m ahead (at most 8), shown only while
+    /// guidance is active. The route is walked from the visitor's position, through the next waypoint and on through
+    /// the later ones, so the trail bends around corners instead of stopping at a single leg. They use the same
+    /// pinhole projection as the building labels: x from the angle to the camera heading, y below the horizon by
+    /// atan2(eye height, distance). Each chevron is rotated toward the next one on screen (the last toward the
+    /// destination), so the trail follows the path. Far chevrons are smaller and fainter, those behind the camera,
+    /// off the screen or under the banner/buttons/card are hidden. The labels are pooled (created once, shown/hidden).
+    /// </summary>
+    private void DrawGroundArrows(CameraPose pose, double focal, double cx, double horizonY, double width, double height)
+    {
+        if (!viewModel.IsGuidanceActive || sensors.Position is not { } user)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        var route = viewModel.NavRoute;
+        var startIndex = viewModel.NavRouteIndex;
+        if (route.Count == 0)
+        {
+            if (viewModel.NextWaypoint is not { } waypoint)
+            {
+                HideGroundArrows(0);
+                return;
+            }
+
+            route = new[] { waypoint };
+            startIndex = 0;
+        }
+
+        startIndex = Math.Clamp(startIndex, 0, route.Count - 1);
+
+        // Walk the route in the flat local plane (metres east/north around the visitor). Zero-length segments
+        // (already reached nodes, duplicate endpoints) are dropped so the path length and interpolation stay valid.
+        var segments = new List<(GeoMath.Vec2 Start, GeoMath.Vec2 End, double StartDistance, double Length)>();
+        var cursor = new GeoMath.Vec2(0, 0);
+        var travelled = 0.0;
+        for (var i = startIndex; i < route.Count; i++)
+        {
+            var next = GeoMath.ToLocal(user, route[i]);
+            var length = (next - cursor).Length;
+            if (length < 0.01)
+            {
+                continue;
+            }
+
+            segments.Add((cursor, next, travelled, length));
+            travelled += length;
+            cursor = next;
+        }
+
+        if (segments.Count == 0)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        GeoMath.Vec2 PointAt(double distance)
+        {
+            foreach (var segment in segments)
+            {
+                if (distance <= segment.StartDistance + segment.Length)
+                {
+                    var t = (distance - segment.StartDistance) / segment.Length;
+                    return segment.Start + (segment.End - segment.Start) * t;
+                }
+            }
+
+            return cursor;
+        }
+
+        var samples = new List<(double Distance, double X, double Y, double Offset)>();
+        for (var slot = 1; slot <= MaxGroundArrows; slot++)
+        {
+            var distance = slot * GroundArrowSpacingMeters;
+            if (distance > GroundArrowAheadMeters || distance > travelled)
+            {
+                break;
+            }
+
+            var local = PointAt(distance);
+            var offset = local.Length < 0.001 ? 0 : GeoMath.AngleDifference(GeoMath.BearingOf(local), pose.Heading);
+            var x = cx + focal * Math.Tan(GeoMath.ToRadians(offset));
+            var y = horizonY + focal * Math.Tan(Math.Atan2(GroundArrowEyeHeightMeters, distance));
+            samples.Add((distance, x, y, offset));
+        }
+
+        if (samples.Count == 0)
+        {
+            HideGroundArrows(0);
+            return;
+        }
+
+        // The destination is the last waypoint; the farthest visible chevron aims at it.
+        var destination = GeoMath.ToLocal(user, route[^1]);
+        var destinationOffset = destination.Length < 0.001
+            ? 0
+            : GeoMath.AngleDifference(GeoMath.BearingOf(destination), pose.Heading);
+        var destinationX = cx + focal * Math.Tan(GeoMath.ToRadians(destinationOffset));
+        var destinationY = horizonY + focal * Math.Tan(
+            Math.Atan2(GroundArrowEyeHeightMeters, Math.Max(destination.Length, 0.1)));
+
+        // First collect what is actually visible; rotation then points each chevron at the next visible one.
+        var visible = new List<(double X, double Y, double Size, double Opacity)>();
+        foreach (var sample in samples)
+        {
+            if (Math.Abs(sample.Offset) > 75)
+            {
+                continue;
+            }
+
+            var fade = Math.Clamp(
+                1 - (sample.Distance - GroundArrowSpacingMeters) / (GroundArrowAheadMeters - GroundArrowSpacingMeters),
+                0,
+                1);
+            var size = 12 + 10 * fade;
+            var opacity = 0.4 + 0.5 * fade;
+
+            // Hide anything that would leave the screen or sit under the top banner, Go to/Stop buttons or bottom card.
+            var half = size;
+            if (sample.X - half < 0 || sample.X + half > width
+                || sample.Y - half < 0 || sample.Y + half > height
+                || IsOverReservedArea(sample.Y, half))
+            {
+                continue;
+            }
+
+            visible.Add((sample.X, sample.Y, size, opacity));
+        }
+
+        for (var i = 0; i < visible.Count; i++)
+        {
+            var item = visible[i];
+            var nextX = i + 1 < visible.Count ? visible[i + 1].X : destinationX;
+            var nextY = i + 1 < visible.Count ? visible[i + 1].Y : destinationY;
+
+            var arrow = GetGroundArrow(i);
+            arrow.FontSize = item.Size;
+            arrow.Opacity = item.Opacity;
+            arrow.Rotation = GroundArrowRotation(item.X, item.Y, nextX, nextY);
+            AbsoluteLayout.SetLayoutBounds(arrow, new Rect(item.X, item.Y, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+            arrow.AnchorX = 0.5;
+            arrow.AnchorY = 0.5;
+            arrow.TranslationX = -(arrow.Width > 0 ? arrow.Width : item.Size) / 2;
+            arrow.TranslationY = -(arrow.Height > 0 ? arrow.Height : item.Size) / 2;
+            arrow.IsVisible = true;
+        }
+
+        HideGroundArrows(visible.Count);
+    }
+
+    /// <summary>
+    /// Rotation for the "▼" glyph so its point follows the screen vector from this chevron to the next one
+    /// (positive MAUI rotation is clockwise and the glyph points down at zero).
+    /// </summary>
+    private static double GroundArrowRotation(double x, double y, double nextX, double nextY)
+    {
+        var dx = nextX - x;
+        var dy = nextY - y;
+        return dx * dx + dy * dy < 0.0001 ? 0 : GeoMath.ToDegrees(Math.Atan2(-dx, dy));
+    }
+
+    private Label GetGroundArrow(int index)
+    {
+        while (groundArrows.Count <= index)
+        {
+            var arrow = new Label
+            {
+                Text = "▼",
+                FontFamily = "OpenSansSemibold",
+                TextColor = AppColor("BcYellow"),
+                InputTransparent = true,
+            };
+
+            Overlay.Children.Add(arrow);
+            groundArrows.Add(arrow);
+        }
+
+        return groundArrows[index];
+    }
+
+    private void HideGroundArrows(int shown)
+    {
+        for (var i = shown; i < groundArrows.Count; i++)
+        {
+            groundArrows[i].IsVisible = false;
+        }
+    }
+
+    /// <summary>True when a chevron centred at <paramref name="centerY"/> would sit over the top or bottom panels.</summary>
+    private bool IsOverReservedArea(double centerY, double halfHeight) =>
+        Overlaps(NavigationPanel, centerY, halfHeight) || Overlaps(BottomPanel, centerY, halfHeight);
+
+    private static bool Overlaps(VisualElement panel, double centerY, double halfHeight)
+    {
+        if (!panel.IsVisible || panel.Height <= 0)
+        {
+            return false;
+        }
+
+        const double padding = 8;
+        return centerY + halfHeight >= panel.Y - padding && centerY - halfHeight <= panel.Y + panel.Height + padding;
+    }
+
+    /// <summary>
+    /// When the destination is roughly in front of the camera (within ~40°) a marker is placed over it with
+    /// the same pinhole projection the building labels use.
+    /// </summary>
+    private void DrawDestinationMarker(CameraPose pose, double focal, double cx, double horizonY, double width, double height)
+    {
+        var marker = GetDestinationMarker();
+        var sighting = viewModel.IsNavigating && viewModel.DestinationId is { } id
+            ? viewModel.Sightings.FirstOrDefault(s => s.Building.Id == id)
+            : null;
+
+        if (sighting is null)
+        {
+            marker.IsVisible = false;
+            return;
+        }
+
+        var offset = sighting.OffsetFrom(pose.Heading);
+        if (Math.Abs(offset) > 40)
+        {
+            marker.IsVisible = false;
+            return;
+        }
+
+        var x = cx + focal * Math.Tan(GeoMath.ToRadians(offset));
+        var elevation = Math.Atan2(12, Math.Max(sighting.DistanceMeters, 5));
+        var y = Math.Clamp(horizonY - focal * Math.Tan(elevation), 120, Math.Max(120, height - 260));
+
+        AbsoluteLayout.SetLayoutBounds(marker, new Rect(x, y, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+        marker.AnchorX = 0.5;
+        marker.TranslationX = -(marker.Width > 0 ? marker.Width : 60) / 2;
+        marker.IsVisible = true;
+    }
+
+    private Border GetDestinationMarker()
+    {
+        if (destinationMarker is not null)
+        {
+            return destinationMarker;
+        }
+
+        destinationMarker = new Border
+        {
+            BackgroundColor = Color.FromArgb("#CC0D0D0D"),
+            Stroke = yellow,
+            StrokeThickness = 2,
+            Padding = new Thickness(10, 4),
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
+            Content = new Label
+            {
+                Text = "▼",
+                TextColor = AppColor("BcYellow"),
+                FontFamily = "OpenSansSemibold",
+                FontSize = 22,
+            },
+            InputTransparent = true,
+        };
+
+        Overlay.Children.Add(destinationMarker);
+        return destinationMarker;
     }
 
     private (Border Card, Label Name, Label Distance) GetLabel(string id)

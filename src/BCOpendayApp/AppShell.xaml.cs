@@ -17,6 +17,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(Routes.StopGallery, typeof(StopGalleryPage));
         Routing.RegisterRoute(Routes.HowItWorks, typeof(HowItWorksPage));
         Routing.RegisterRoute(Routes.About, typeof(AboutPage));
+        Routing.RegisterRoute(Routes.Pano, typeof(PanoramaPage));
         Routing.RegisterRoute(Routes.VisitorInfo, typeof(VisitorInfoPage));
     }
 }

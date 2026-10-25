@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Panorama.Views.PanoramaDraftsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BCOpendayApp.Views.Controls"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.Panorama.ViewModels"
+    x:DataType="vm:PanoramaDraftsViewModel"
+    Title="Panorama drafts"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <controls:PageHeader
+                Title="Local panorama drafts"
+                Subtitle="Import a 2:1 equirectangular image and preview it in the 360° viewer." />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Stored on this phone only" Style="{StaticResource CardTitleLabel}" />
+                    <Label
+                        Text="Images stay in this app's private storage. Nothing is uploaded to Firebase or shared with another device."
+                        Style="{StaticResource MutedLabel}" />
+                    <Button
+                        Text="Choose panorama image"
+                        Command="{Binding ImportCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                    <Label
+                        Text="JPEG or PNG, about 2:1 (for example 4096 × 2048), up to 20 MB. A normal photo or partial panorama is rejected."
+                        Style="{StaticResource MutedLabel}"
+                        FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <ActivityIndicator
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Color="{StaticResource BcRed}" />
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="13" />
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasPending}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Preview before saving" Style="{StaticResource CardTitleLabel}" />
+                    <Image
+                        Source="{Binding PendingPreviewPath}"
+                        Aspect="AspectFit"
+                        HeightRequest="220"
+                        SemanticProperties.Description="Flattened preview of the selected panorama" />
+                    <Label Text="{Binding PendingName}" Style="{StaticResource EyebrowLabel}" />
+                    <Label Text="{Binding PendingDetails}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                    <Button
+                        Text="Save as local draft"
+                        Command="{Binding SavePendingCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                    <Button
+                        Text="Discard preview"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding DiscardPendingCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Saved drafts" Style="{StaticResource SectionTitleLabel}" />
+            <Label
+                Text="No local drafts yet."
+                Style="{StaticResource MutedLabel}"
+                IsVisible="{Binding HasNoDrafts}" />
+
+            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Drafts}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PanoramaDraftItem">
+                        <Border Style="{StaticResource Card}">
+                            <VerticalStackLayout Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <Label Text="{Binding DisplayName}" Style="{StaticResource CardTitleLabel}" FontSize="18" />
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding Badge}"
+                                        Style="{StaticResource EyebrowLabel}"
+                                        FontSize="11"
+                                        VerticalOptions="Center" />
+                                </Grid>
+                                <Label Text="{Binding Details}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button
+                                        Text="Open 360° view"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=OpenCommand}"
+                                        CommandParameter="{Binding .}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="Delete"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=DeleteCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Button Text="Back" Style="{StaticResource SecondaryButton}" Command="{Binding BackCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>
