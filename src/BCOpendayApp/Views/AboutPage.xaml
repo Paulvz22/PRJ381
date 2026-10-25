@@ -39,6 +39,10 @@
                 Text="360 virtual tour"
                 Style="{StaticResource SecondaryButton}"
                 Command="{Binding VirtualTourCommand}" />
+            <Button
+                Text="Local panorama drafts"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding PanoramaDraftsCommand}" />
 
             <!-- Staff only: password-protected building scanner (Scanner/ folder). -->
             <Button

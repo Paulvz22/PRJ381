@@ -293,6 +293,15 @@ public sealed class ArViewerViewModel : ViewModelBase
         private set => SetProperty(ref nextWaypoint, value);
     }
 
+    /// <summary>
+    /// The full active route (the last waypoint is the destination), or an empty list when not navigating.
+    /// The page walks this polyline to draw the ground chevrons around corners.
+    /// </summary>
+    public IReadOnlyList<GeoPoint> NavRoute => route;
+
+    /// <summary>Index in <see cref="NavRoute"/> of the waypoint being walked to next.</summary>
+    public int NavRouteIndex => navIndex;
+
     /// <summary>True while turn-by-turn guidance should be shown (navigating and not yet arrived).</summary>
     public bool IsGuidanceActive => isNavigating && !hasArrived;
 

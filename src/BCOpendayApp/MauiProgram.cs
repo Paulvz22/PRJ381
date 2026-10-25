@@ -1,4 +1,5 @@
 using BCOpendayApp.AR;
+using BCOpendayApp.Panorama;
 using BCOpendayApp.Scanner;
 using BCOpendayApp.Services;
 using BCOpendayApp.ViewModels;
@@ -40,7 +41,8 @@ public static class MauiProgram
         // AR building guide (AR/ folder) and the staff-only building scanner (Scanner/ folder).
         builder
             .UseBuildingAr()
-            .UseBuildingScanner();
+            .UseBuildingScanner()
+            .UseLocalPanoramas();
 
         builder.Services
             .AddServices()

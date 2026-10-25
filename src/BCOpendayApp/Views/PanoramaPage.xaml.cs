@@ -1,13 +1,17 @@
+using System.Net;
 using System.Text.Json.Nodes;
+using BCOpendayApp.Panorama.Models;
+using BCOpendayApp.Panorama.Services;
 using BCOpendayApp.Services;
 
 namespace BCOpendayApp.Views;
 
 /// <summary>
-/// Bundled 360° sample tour. Pannellum and the tour config are read from Resources/Raw/pano and merged
-/// into one HTML document. The equirectangular photos are inlined as base64 data URIs: WebView WebGL
-/// refuses to load texture images from packaged file:///asset URLs.
+/// Shows either the bundled sample tour or one validated local full-sphere draft. Pannellum and the tour config
+/// are merged into one HTML document. Images are inlined as base64 data URIs because WebView WebGL refuses to
+/// load texture images from packaged file:///asset URLs.
 /// </summary>
+[QueryProperty(nameof(DraftId), Routes.StopIdParameter)]
 public partial class PanoramaPage : BasePage
 {
     private const string AssetRoot = "pano/";
@@ -16,44 +20,72 @@ public partial class PanoramaPage : BasePage
     private const string JsAsset = AssetRoot + "pannellum.js";
 
     private readonly IDialogService dialogs;
+    private readonly PanoramaDraftStore drafts;
     private bool isLoaded;
+    private string loadedKey = string.Empty;
 
-    public PanoramaPage(IDialogService dialogs)
+    public PanoramaPage(IDialogService dialogs, PanoramaDraftStore drafts)
     {
         this.dialogs = dialogs;
+        this.drafts = drafts;
         InitializeComponent();
     }
+
+    /// <summary>Set by Shell when a local draft is opened; empty/null opens the bundled tour.</summary>
+    public string? DraftId { get; set; }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        if (isLoaded)
+        var key = DraftId ?? string.Empty;
+        if (isLoaded && string.Equals(loadedKey, key, StringComparison.Ordinal))
         {
             return;
         }
 
         try
         {
-            TourWebView.Source = new HtmlWebViewSource { Html = await BuildHtmlAsync() };
+            PanoramaDraft? draft = null;
+            if (!string.IsNullOrWhiteSpace(DraftId))
+            {
+                draft = await drafts.FindAsync(DraftId);
+                if (draft is null)
+                {
+                    await dialogs.AlertAsync(
+                        "Panorama not found",
+                        "This local draft is no longer on this phone.");
+                    await Shell.Current.GoToAsync("..");
+                    return;
+                }
+            }
+
+            LoadingState.IsVisible = true;
+            TourWebView.IsVisible = false;
+            Title = draft is null ? "360 virtual tour" : draft.DisplayName;
+            TourWebView.Source = new HtmlWebViewSource { Html = await BuildHtmlAsync(draft) };
             LoadingState.IsVisible = false;
             TourWebView.IsVisible = true;
             isLoaded = true;
+            loadedKey = key;
         }
         catch (Exception exception)
         {
             LoadingState.IsVisible = false;
             await dialogs.AlertAsync(
-                "360 tour unavailable",
-                $"The sample panorama tour could not be loaded. Please try again.\n\n{exception.Message}");
+                "360 view unavailable",
+                $"The panorama could not be loaded. Please try again.\n\n{exception.Message}");
         }
     }
 
-    private static async Task<string> BuildHtmlAsync()
+    private async Task<string> BuildHtmlAsync(PanoramaDraft? draft)
     {
         var css = await ReadTextAssetAsync(CssAsset);
         var js = await ReadTextAssetAsync(JsAsset);
-        var tour = await BuildTourConfigAsync();
+        var tour = draft is null
+            ? await BuildStaticTourConfigAsync()
+            : await BuildLocalTourConfigAsync(draft);
+        var title = WebUtility.HtmlEncode(draft?.DisplayName ?? "360 virtual tour");
 
         return $$"""
             <!DOCTYPE html>
@@ -61,7 +93,7 @@ public partial class PanoramaPage : BasePage
             <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-            <title>360 virtual tour</title>
+            <title>{{title}}</title>
             <style>
             html, body, #panorama { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #08090B; }
             </style>
@@ -85,8 +117,8 @@ public partial class PanoramaPage : BasePage
             """;
     }
 
-    /// <summary>Reads tour.json and swaps every scene's panorama path for an inlined base64 image.</summary>
-    private static async Task<string> BuildTourConfigAsync()
+    /// <summary>Reads the bundled tour.json and swaps every scene's panorama path for an inlined base64 image.</summary>
+    private static async Task<string> BuildStaticTourConfigAsync()
     {
         var json = await ReadTextAssetAsync(TourAsset);
 
@@ -108,8 +140,19 @@ public partial class PanoramaPage : BasePage
             }
         }
 
-        // Escaping the slash keeps a "</script>" inside a string from ending the script block early.
-        return root.ToJsonString().Replace("</", "<\\/");
+        PanoramaViewerConfig.DisableDebugOverlays(root);
+        return PanoramaViewerConfig.ToSafeScriptJson(root);
+    }
+
+    private async Task<string> BuildLocalTourConfigAsync(PanoramaDraft draft)
+    {
+        var path = drafts.GetImagePath(draft);
+        var mimeType = string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase)
+            ? "image/png"
+            : "image/jpeg";
+        var bytes = await File.ReadAllBytesAsync(path);
+        var dataUri = $"data:{mimeType};base64,{Convert.ToBase64String(bytes)}";
+        return PanoramaViewerConfig.BuildFullSphereTourJson(draft.DisplayName, dataUri);
     }
 
     private static async Task<string> BuildDataUriAsync(string relativePath)
