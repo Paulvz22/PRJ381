@@ -16,6 +16,7 @@
     <Compile Include="../../src/BCOpendayApp/Services/Locations/HotspotValidation.cs" Link="Source/HotspotValidation.cs" />
     <Compile Include="../../src/BCOpendayApp/Services/Locations/LocationService.cs" Link="Source/LocationService.cs" />
     <Compile Include="../../src/BCOpendayApp/Services/Locations/MapGeometry.cs" Link="Source/MapGeometry.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/INarrationService.cs" Link="Source/INarrationService.cs" />
     <!-- AR guide: pure maths + data loading (no MAUI types). -->
     <Compile Include="../../src/BCOpendayApp/AR/Models/BuildingAnchor.cs" Link="Source/AR/BuildingAnchor.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/GeoMath.cs" Link="Source/AR/GeoMath.cs" />

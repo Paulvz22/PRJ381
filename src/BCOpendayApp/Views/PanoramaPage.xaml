@@ -26,7 +26,8 @@
 
         <WebView x:Name="TourWebView" IsVisible="False" />
 
-        <!-- Top-right chips. Hidden on phones without the orientation sensor, and while in VR. -->
+        <!-- Top-right chips, hidden while in VR. VR and Move phone need the orientation sensor; Listen needs a
+             description on the current view. -->
         <HorizontalStackLayout
             x:Name="Chips"
             IsVisible="False"
@@ -34,8 +35,29 @@
             VerticalOptions="Start"
             Margin="12"
             Spacing="8">
+            <!-- Reads the current view's description aloud with the phone's voice. -->
+            <Border
+                x:Name="ListenChip"
+                IsVisible="False"
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label
+                    x:Name="ListenChipLabel"
+                    Text="Listen"
+                    TextColor="White"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnListenTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+
             <!-- Cardboard-style VR: put the phone in a headset; look at an arrow for 1.5 s to move. -->
             <Border
+                x:Name="VrChip"
                 Padding="12,8"
                 BackgroundColor="#CC0D0D0D"
                 Stroke="{StaticResource BcYellowBrush}"

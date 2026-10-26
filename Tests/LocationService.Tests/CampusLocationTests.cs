@@ -3,6 +3,7 @@ using System.Text;
 using BCOpendayApp.AR.Models;
 using BCOpendayApp.Panorama.Models;
 using BCOpendayApp.Panorama.Services;
+using BCOpendayApp.Services;
 using BCOpendayApp.Services.Campus;
 
 /// <summary>Tests for the automatic campus location list (AR building scans + online 360° views).</summary>
@@ -81,6 +82,18 @@ static class CampusLocationTests
             Check(CampusLocationCatalog.LocationIdFor(draft) == "great-hall");
             Check(!PanoramaChunks.IsValid(view with { Description = new string('d', 301) }));
             Check(!PanoramaChunks.IsValid(view with { LocationId = "UPPER" }));
+            return Task.CompletedTask;
+        });
+
+        add("NARRATION: AR Listen button shows within 15 m and only hides past 20 m", () =>
+        {
+            Check(NarrationRange.IsInRange(0, wasInRange: false));            // inside / touching the building
+            Check(NarrationRange.IsInRange(15, wasInRange: false));
+            Check(!NarrationRange.IsInRange(16, wasInRange: false));          // not shown yet
+            Check(NarrationRange.IsInRange(18, wasInRange: true));            // already shown: GPS wobble keeps it
+            Check(NarrationRange.IsInRange(20, wasInRange: true));
+            Check(!NarrationRange.IsInRange(21, wasInRange: true));           // walked away
+            Check(!NarrationRange.IsInRange(double.NaN, wasInRange: true));
             return Task.CompletedTask;
         });
 

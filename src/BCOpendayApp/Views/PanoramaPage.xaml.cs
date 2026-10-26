@@ -36,6 +36,13 @@ public partial class PanoramaPage : BasePage
     private readonly PanoramaDraftStore drafts;
     private readonly PanoramaOnlineLibrary online;
     private readonly IVisitorProgressService visitorProgress;
+    private readonly INarrationService narration;
+
+    // Narration: the current view's description, and the views already read aloud on entering them in VR
+    // (each is read once per visit to this page, so hopping back and forth doesn't repeat it every time).
+    private readonly HashSet<string> narratedInVr = new(StringComparer.Ordinal);
+    private string currentDescription = string.Empty;
+    private bool sensorFailed;
     private readonly HeadingFilter heading = new(0.35);
     private PanoramaTour? tour;
     private string loadedSceneId = string.Empty;
@@ -55,12 +62,14 @@ public partial class PanoramaPage : BasePage
         IDialogService dialogs,
         PanoramaDraftStore drafts,
         PanoramaOnlineLibrary online,
-        IVisitorProgressService visitorProgress)
+        IVisitorProgressService visitorProgress,
+        INarrationService narration)
     {
         this.dialogs = dialogs;
         this.drafts = drafts;
         this.online = online;
         this.visitorProgress = visitorProgress;
+        this.narration = narration;
         InitializeComponent();
         TourWebView.Navigating += OnWebViewNavigating;
     }
@@ -71,6 +80,7 @@ public partial class PanoramaPage : BasePage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        narration.SpeakingChanged += OnSpeakingChanged;
         try
         {
             tour = await LoadTourAsync();
@@ -110,6 +120,9 @@ public partial class PanoramaPage : BasePage
         }
 
         StopMotion();
+        narration.SpeakingChanged -= OnSpeakingChanged;
+        narration.Stop();
+        narratedInVr.Clear();
         base.OnDisappearing();
     }
 
@@ -169,6 +182,7 @@ public partial class PanoramaPage : BasePage
         }
 
         isLoading = true;
+        narration.Stop(); // leaving this view: stop reading its description
         try
         {
             LoadingText.Text = "Loading the 360° tour...";
@@ -204,6 +218,13 @@ public partial class PanoramaPage : BasePage
             loadedSceneId = scene.Id;
             LoadingState.IsVisible = false;
             TourWebView.IsVisible = true;
+
+            currentDescription = scene.Draft?.Description?.Trim() ?? string.Empty;
+            UpdateChips();
+            if (vrEnabled)
+            {
+                NarrateOnEnteringInVr();
+            }
 
             // Opening a 360° view counts as visiting its campus location (journey progress on Home).
             visitorProgress.MarkVisited(scene.Draft is { } viewed ? CampusLocationCatalog.LocationIdFor(viewed) : scene.Id);
@@ -268,11 +289,11 @@ public partial class PanoramaPage : BasePage
     {
         if (!OrientationSensor.Default.IsSupported)
         {
-            Chips.IsVisible = false;
+            UpdateChips();
             return;
         }
 
-        Chips.IsVisible = !vrEnabled;
+        UpdateChips();
         UpdateMotionLabel();
         if (!(motionEnabled || vrEnabled) || sensorRunning)
         {
@@ -295,7 +316,8 @@ public partial class PanoramaPage : BasePage
         {
             System.Diagnostics.Debug.WriteLine($"Orientation sensor unavailable: {exception.Message}");
             OrientationSensor.Default.ReadingChanged -= OnOrientation;
-            Chips.IsVisible = false;
+            sensorFailed = true;
+            UpdateChips();
         }
     }
 
@@ -337,6 +359,66 @@ public partial class PanoramaPage : BasePage
         }
     }
 
+    // ------------------------------------------------------------------ narration (phone's text-to-speech)
+
+    /// <summary>Shows only the chips that apply: none in VR, Listen only when this view has a description.</summary>
+    private void UpdateChips()
+    {
+        var hasSensor = OrientationSensor.Default.IsSupported && !sensorFailed;
+        VrChip.IsVisible = hasSensor;
+        MotionToggle.IsVisible = hasSensor;
+        ListenChip.IsVisible = currentDescription.Length > 0;
+        UpdateListenLabel();
+        Chips.IsVisible = !vrEnabled && (hasSensor || ListenChip.IsVisible);
+    }
+
+    private void UpdateListenLabel() =>
+        ListenChipLabel.Text = narration.IsSpeaking ? "\u25A0 Stop" : "\U0001F50A Listen";
+
+    private void OnSpeakingChanged(object? sender, EventArgs e) => MainThread.BeginInvokeOnMainThread(UpdateListenLabel);
+
+    private void OnListenTapped(object? sender, TappedEventArgs e)
+    {
+        if (narration.IsSpeaking)
+        {
+            narration.Stop();
+        }
+        else
+        {
+            _ = SpeakAsync(currentDescription);
+        }
+    }
+
+    /// <summary>In the headset nobody can tap Listen, so a view's description is read when it is entered.</summary>
+    private void NarrateOnEnteringInVr()
+    {
+        if (currentDescription.Length > 0 && loadedSceneId.Length > 0 && narratedInVr.Add(loadedSceneId))
+        {
+            _ = SpeakAsync(currentDescription);
+        }
+    }
+
+    private async Task SpeakAsync(string text)
+    {
+        if (text.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await narration.SpeakAsync(text);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Narration failed: {exception.Message}");
+            if (!vrEnabled)
+            {
+                await dialogs.AlertAsync("Narration unavailable", "This phone has no text-to-speech voice installed.");
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ VR (phone in a headset)
 
     private async void OnVrTapped(object? sender, TappedEventArgs e)
@@ -366,6 +448,7 @@ public partial class PanoramaPage : BasePage
         if (on)
         {
             StartMotion(); // VR always follows the phone, whatever the "Move phone" setting is
+            NarrateOnEnteringInVr();
         }
         else
         {
@@ -374,7 +457,7 @@ public partial class PanoramaPage : BasePage
                 StopMotion();
             }
 
-            Chips.IsVisible = OrientationSensor.Default.IsSupported;
+            UpdateChips();
         }
 
         try
@@ -390,7 +473,7 @@ public partial class PanoramaPage : BasePage
     private void SetVrChrome(bool on)
     {
         Shell.SetNavBarIsVisible(this, !on);
-        Chips.IsVisible = !on && OrientationSensor.Default.IsSupported;
+        UpdateChips();
         DeviceDisplay.Current.KeepScreenOn = on;
 #if ANDROID
         try
