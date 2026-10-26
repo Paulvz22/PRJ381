@@ -19,6 +19,12 @@ public sealed class TourViewModel : CatalogViewModelBase
         : base(locationService, visitorProgress, navigation, dialogs)
     {
         ContinueCommand = CreateCommand(() => nextStop is null ? Task.CompletedTask : OpenStopAsync(nextStop));
+        Open360TourCommand = CreateCommand(async () =>
+        {
+            if (!TourLauncher.Launch())
+                await dialogs.AlertAsync("Tour not installed",
+                    "Please install the Campus Tour app first.");
+        });
     }
 
     public string Subtitle => Locations.Count == 0
@@ -50,6 +56,7 @@ public sealed class TourViewModel : CatalogViewModelBase
     }
 
     public AsyncCommand ContinueCommand { get; }
+    public AsyncCommand Open360TourCommand { get; }
 
     protected override void OnCatalogueLoaded()
     {

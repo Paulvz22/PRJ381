@@ -22,8 +22,9 @@
                 <Label
                     Text="This version is a photo and information tour. Camera AR, QR scanning and 360° scenes are coming soon."
                     Style="{StaticResource MutedLabel}" />
+        <Button Text="Start 360° Campus Tour" Command="{Binding Open360TourCommand}" />
 
-                <Label Text="{Binding ProgressText}" Style="{StaticResource CardTitleLabel}" FontSize="23" />
+        <Label Text="{Binding ProgressText}" Style="{StaticResource CardTitleLabel}" FontSize="23" />
                 <ProgressBar Progress="{Binding Progress}" />
 
                 <Button
