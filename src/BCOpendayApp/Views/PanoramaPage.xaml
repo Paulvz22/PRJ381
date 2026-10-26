@@ -18,11 +18,53 @@
                 Color="{StaticResource BcRed}"
                 HorizontalOptions="Center" />
             <Label
+                x:Name="LoadingText"
                 Text="Loading the 360° tour..."
                 Style="{StaticResource MutedLabel}"
                 HorizontalOptions="Center" />
         </VerticalStackLayout>
 
         <WebView x:Name="TourWebView" IsVisible="False" />
+
+        <!-- Top-right chips. Hidden on phones without the orientation sensor, and while in VR. -->
+        <HorizontalStackLayout
+            x:Name="Chips"
+            IsVisible="False"
+            HorizontalOptions="End"
+            VerticalOptions="Start"
+            Margin="12"
+            Spacing="8">
+            <!-- Cardboard-style VR: put the phone in a headset; look at an arrow for 1.5 s to move. -->
+            <Border
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label Text="VR headset" TextColor="White" FontFamily="OpenSansSemibold" FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnVrTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Look around by moving the phone (on) or by swiping (off). -->
+            <Border
+                x:Name="MotionToggle"
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label
+                    x:Name="MotionToggleLabel"
+                    Text="Move phone: ON"
+                    TextColor="White"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnMotionToggleTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+        </HorizontalStackLayout>
     </Grid>
 </views:BasePage>

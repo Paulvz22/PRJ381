@@ -220,7 +220,7 @@
                             IsEnabled="{Binding TargetHasDescription}" />
                         <Button
                             Grid.Column="1"
-                            Text="Open tour stop"
+                            Text="Open location"
                             Command="{Binding OpenStopCommand}"
                             IsEnabled="{Binding TargetHasStop}" />
                     </Grid>

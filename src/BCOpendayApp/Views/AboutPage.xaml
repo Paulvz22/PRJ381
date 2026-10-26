@@ -36,21 +36,17 @@
                 Style="{StaticResource SecondaryButton}"
                 Command="{Binding HowItWorksCommand}" />
             <Button
-                Text="360 virtual tour"
+                Text="Visit the Belgium Campus website"
                 Style="{StaticResource SecondaryButton}"
-                Command="{Binding VirtualTourCommand}" />
+                Command="{Binding WebsiteCommand}" />
+
+            <!-- Staff only (the page asks for the staff sign-in): 360° views saved on this phone. -->
             <Button
                 Text="Local panorama drafts"
                 Style="{StaticResource SecondaryButton}"
-                Command="{Binding PanoramaDraftsCommand}" />
-
-            <!-- Staff only: password-protected building scanner (Scanner/ folder). -->
-            <Button
-                Text="Staff: building scanner"
-                Style="{StaticResource SecondaryButton}"
                 FontSize="12"
                 Opacity="0.7"
-                Command="{Binding StaffScannerCommand}" />
+                Command="{Binding PanoramaDraftsCommand}" />
 
         </VerticalStackLayout>
     </ScrollView>

@@ -176,6 +176,9 @@ NavTests.Register(Add);
 NavRouterTests.Register(Add);
 SamplerTests.Register(Add);
 PanoramaTests.Register(Add);
+PanoramaCaptureTests.Register(Add);
+PanoramaOnlineTests.Register(Add);
+CampusLocationTests.Register(Add);
 
 int failures = 0;
 foreach (var (name, run) in tests)

@@ -1,26 +1,27 @@
 using BCOpendayApp.Infrastructure;
 using BCOpendayApp.Services;
+using BCOpendayApp.Services.Campus;
 
 namespace BCOpendayApp.ViewModels;
 
-public sealed class HomeViewModel : CatalogViewModelBase
+public sealed class HomeViewModel : CampusLocationsViewModelBase
 {
     private readonly IAnalyticsService analytics;
 
-    private string journeyText = string.Empty;
+    private string journeyText = "Your journey";
     private double journeyProgress;
 
     public HomeViewModel(
-        ILocationService locationService,
+        ICampusLocationService campus,
         IVisitorProgressService visitorProgress,
         IAnalyticsService analytics,
         INavigationService navigation,
         IDialogService dialogs)
-        : base(locationService, visitorProgress, navigation, dialogs)
+        : base(campus, visitorProgress, navigation, dialogs)
     {
         this.analytics = analytics;
 
-        StartTourCommand = CreateCommand(() => Navigation.GoToAsync(Routes.StartTour));
+        StartTourCommand = CreateCommand(() => Navigation.GoToTabAsync(Routes.Tour));
         ShowLocationsCommand = CreateCommand(() => Navigation.GoToAsync(Routes.Locations));
         ShowMapCommand = CreateCommand(() => Navigation.GoToTabAsync(Routes.Map));
         HowItWorksCommand = CreateCommand(() => Navigation.GoToAsync(Routes.HowItWorks));
@@ -58,10 +59,11 @@ public sealed class HomeViewModel : CatalogViewModelBase
         base.OnAppearing();
     }
 
-    protected override void OnCatalogueLoaded()
+    /// <summary>A location counts as visited once it was seen in the AR camera or opened as a 360° view.</summary>
+    protected override void OnLocationsLoaded()
     {
         var total = Locations.Count;
-        var completed = VisitorProgress.CountVisited(Locations.Select(stop => stop.Id));
+        var completed = VisitorProgress.CountVisited(Locations.Select(location => location.Id));
 
         JourneyText = $"Your journey · {completed} / {total} visited";
         JourneyProgress = total == 0 ? 0 : (double)completed / total;

@@ -5,6 +5,7 @@ namespace BCOpendayApp.Panorama.Services;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(List<PanoramaDraft>))]
+[JsonSerializable(typeof(List<PanoramaManifest>))]
 internal sealed partial class PanoramaDraftJsonContext : JsonSerializerContext
 {
 }

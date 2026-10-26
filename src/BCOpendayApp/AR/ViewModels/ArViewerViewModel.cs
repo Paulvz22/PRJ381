@@ -37,6 +37,7 @@ public sealed class ArViewerViewModel : ViewModelBase
     private bool isDetailsOpen;
     private bool cameraAllowed;
     private bool locationAllowed = true;
+    private readonly IVisitorProgressService visitorProgress;
     private string dataMessage = "Loading buildings...";
     private string statusText = "Starting sensors...";
     private string hintText = string.Empty;
@@ -68,6 +69,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         IBuildingRepository repository,
         IArSensorService sensors,
         IAnalyticsService analytics,
+        IVisitorProgressService visitorProgress,
         INavigationService navigation,
         IDialogService dialogs)
         : base(navigation, dialogs)
@@ -75,6 +77,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         this.repository = repository;
         this.sensors = sensors;
         this.analytics = analytics;
+        this.visitorProgress = visitorProgress;
 
         ToggleDetailsCommand = CreateCommand(() =>
         {
@@ -178,7 +181,8 @@ public sealed class ArViewerViewModel : ViewModelBase
 
     public string TargetDistance => target is null ? string.Empty : $"About {FormatDistance(target.DistanceMeters)} away";
 
-    public bool TargetHasStop => target is { Building.StopId.Length: > 0 };
+    /// <summary>Every scanned building is a campus location, so its location page can always be opened.</summary>
+    public bool TargetHasStop => target is not null;
 
     public bool IsDetailsOpen
     {
@@ -485,6 +489,9 @@ public sealed class ArViewerViewModel : ViewModelBase
             if (sighting is not null)
             {
                 analytics.LogHotspotTapped(sighting.Building.Id, sighting.Building.Name);
+
+                // Seeing a building in the AR camera counts as visiting that location (journey progress on Home).
+                visitorProgress.MarkVisited(sighting.Building.Id);
                 try
                 {
                     HapticFeedback.Default.Perform(HapticFeedbackType.Click);
@@ -662,8 +669,8 @@ public sealed class ArViewerViewModel : ViewModelBase
     }
 
     private Task OpenStopAsync() =>
-        target is { Building.StopId.Length: > 0 } t
-            ? Navigation.GoToStopAsync(Routes.StopInfo, t.Building.StopId)
+        target is { } t
+            ? Navigation.GoToStopAsync(Routes.LocationDetail, t.Building.Id)
             : Task.CompletedTask;
 
     public static string FormatDistance(double meters) =>

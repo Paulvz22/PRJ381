@@ -24,4 +24,16 @@
   <uses-feature android:name="android.hardware.location.gps" android:required="false" />
   <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
   <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+
+  <!-- Android 11+ only lets the app see these apps when they are listed: the camera app (staff taking a
+       location photo) and the browser (About -> Visit the Belgium Campus website). -->
+  <queries>
+    <intent>
+      <action android:name="android.media.action.IMAGE_CAPTURE" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="https" />
+    </intent>
+  </queries>
 </manifest>

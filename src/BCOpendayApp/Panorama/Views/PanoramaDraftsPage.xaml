@@ -7,21 +7,38 @@
     xmlns:views="clr-namespace:BCOpendayApp.Views"
     xmlns:vm="clr-namespace:BCOpendayApp.Panorama.ViewModels"
     x:DataType="vm:PanoramaDraftsViewModel"
-    Title="Panorama drafts"
+    Title="360° views (staff)"
     Shell.TabBarIsVisible="False">
 
     <ScrollView>
         <VerticalStackLayout Style="{StaticResource PageContent}">
 
             <controls:PageHeader
-                Title="Local panorama drafts"
-                Subtitle="Import a 2:1 equirectangular image and preview it in the 360° viewer." />
+                Title="360° views"
+                Subtitle="Capture a new view with the camera, or import a finished 2:1 panorama." />
 
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Stored on this phone only" Style="{StaticResource CardTitleLabel}" />
+                    <Label Text="Capture with this phone" Style="{StaticResource CardTitleLabel}" />
                     <Label
-                        Text="Images stay in this app's private storage. Nothing is uploaded to Firebase or shared with another device."
+                        Text="Stand on the spot, turn slowly on the spot and the app takes the photos and joins them. The GPS position is saved too, so arrows to nearby views appear automatically."
+                        Style="{StaticResource MutedLabel}" />
+                    <Button
+                        Text="+ Capture new 360° view"
+                        Command="{Binding CaptureCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                    <Button
+                        Text="Open 360° tour with arrows"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenTourCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Import a finished panorama" Style="{StaticResource CardTitleLabel}" />
+                    <Label
+                        Text="Views are saved on this phone first. Use Upload to put a view online for every visitor."
                         Style="{StaticResource MutedLabel}" />
                     <Button
                         Text="Choose panorama image"
@@ -83,12 +100,26 @@
                                         VerticalOptions="Center" />
                                 </Grid>
                                 <Label Text="{Binding Details}" Style="{StaticResource MutedLabel}" FontSize="13" />
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Label Text="{Binding Placement}" Style="{StaticResource MutedLabel}" FontSize="13" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="8">
                                     <Button
-                                        Text="Open 360° view"
+                                        Text="{Binding UploadText}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=UploadCommand}"
+                                        CommandParameter="{Binding .}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="Open"
+                                        Style="{StaticResource SecondaryButton}"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=OpenCommand}"
                                         CommandParameter="{Binding .}" />
                                     <Button
+                                        Grid.Row="1"
+                                        Text="Export"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=ExportCommand}"
+                                        CommandParameter="{Binding .}" />
+                                    <Button
+                                        Grid.Row="1"
                                         Grid.Column="1"
                                         Text="Delete"
                                         Style="{StaticResource SecondaryButton}"
@@ -96,6 +127,34 @@
                                         CommandParameter="{Binding .}" />
                                 </Grid>
                             </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <!-- Views in Firestore: every visitor's 360° tour shows these. -->
+            <Label Text="Online views" Style="{StaticResource SectionTitleLabel}" />
+            <Label Text="{Binding OnlineStatus}" Style="{StaticResource MutedLabel}" FontSize="13" />
+            <Label
+                Text="Nothing online yet. Use Upload on a view above."
+                Style="{StaticResource MutedLabel}"
+                IsVisible="{Binding HasNoOnlineViews}" />
+            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding OnlineViews}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OnlinePanoramaItem">
+                        <Border Style="{StaticResource Card}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" RowDefinitions="Auto,Auto">
+                                <Label Text="{Binding Name}" Style="{StaticResource CardTitleLabel}" FontSize="17" />
+                                <Label Grid.Row="1" Text="{Binding Details}" Style="{StaticResource MutedLabel}" FontSize="12" />
+                                <Button
+                                    Grid.Column="1"
+                                    Grid.RowSpan="2"
+                                    Text="Remove"
+                                    Style="{StaticResource SecondaryButton}"
+                                    VerticalOptions="Center"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PanoramaDraftsViewModel}}, Path=DeleteOnlineCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>

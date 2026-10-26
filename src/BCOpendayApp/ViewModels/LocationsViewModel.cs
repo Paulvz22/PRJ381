@@ -1,20 +1,33 @@
 using BCOpendayApp.Services;
+using BCOpendayApp.Services.Campus;
 
 namespace BCOpendayApp.ViewModels;
 
-public sealed class LocationsViewModel : CatalogViewModelBase
+/// <summary>
+/// All campus locations with search. Opened with mode=pano (from "Choose from locations" on the Tour page) it
+/// lists only locations with a 360° view, and tapping one opens that view straight away.
+/// </summary>
+public sealed class LocationsViewModel : CampusLocationsViewModelBase, IQueryAttributable
 {
-    private IReadOnlyList<StopItemViewModel> stops = Array.Empty<StopItemViewModel>();
+    public const string ModeParameter = "mode";
+    public const string PanoramaMode = "pano";
+
+    private IReadOnlyList<LocationItemViewModel> items = Array.Empty<LocationItemViewModel>();
     private string searchText = string.Empty;
+    private bool panoramaMode;
 
     public LocationsViewModel(
-        ILocationService locationService,
+        ICampusLocationService campus,
         IVisitorProgressService visitorProgress,
         INavigationService navigation,
         IDialogService dialogs)
-        : base(locationService, visitorProgress, navigation, dialogs)
+        : base(campus, visitorProgress, navigation, dialogs)
     {
     }
+
+    public string Subtitle => panoramaMode
+        ? "Choose a place to open its 360° view."
+        : "Every place on campus that has an AR scan or a 360° view.";
 
     public string SearchText
     {
@@ -28,22 +41,36 @@ public sealed class LocationsViewModel : CatalogViewModelBase
         }
     }
 
-    public IReadOnlyList<StopItemViewModel> Stops
+    public IReadOnlyList<LocationItemViewModel> Items
     {
-        get => stops;
-        private set => SetProperty(ref stops, value);
+        get => items;
+        private set => SetProperty(ref items, value);
     }
 
-    public bool HasNoResults => HasCatalogue && stops.Count == 0;
+    public bool HasNoResults => HasLocations && items.Count == 0;
 
-    protected override void OnCatalogueLoaded() => ApplyFilter();
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        panoramaMode = query.TryGetValue(ModeParameter, out var mode) && mode as string == PanoramaMode;
+        OnPropertyChanged(nameof(Subtitle));
+        ApplyFilter();
+    }
+
+    protected override void OnLocationsLoaded() => ApplyFilter();
+
+    protected override Task OpenLocationAsync(CampusLocation location) =>
+        panoramaMode && location.FirstViewId is { } viewId
+            ? Navigation.GoToStopAsync(Routes.Pano, viewId)
+            : base.OpenLocationAsync(location);
 
     private void ApplyFilter()
     {
-        var matches = Locations.Where(stop =>
-            $"{stop.Name} {stop.Summary} {stop.Highlight}".Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        var matches = Locations
+            .Where(location => !panoramaMode || location.HasPanorama)
+            .Where(location => $"{location.Name} {location.Description} {location.Code}"
+                .Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
-        Stops = BuildItems(matches);
+        Items = BuildItems(matches);
         OnPropertyChanged(nameof(HasNoResults));
     }
 }

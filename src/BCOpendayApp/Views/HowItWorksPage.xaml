@@ -13,23 +13,31 @@
     <ScrollView>
         <VerticalStackLayout Style="{StaticResource PageContent}">
 
-            <controls:PageHeader Title="How it works" Subtitle="Explore at your own pace." />
+            <controls:PageHeader Title="How it works" Subtitle="Everything the app can do, step by step." />
 
             <controls:InfoCard
-                Heading="01 · Scan"
+                Heading="01 · Point the AR camera"
                 HeadingColor="{StaticResource BcRed}"
-                Body="Open Start AR Tour and enter the campus location code, or choose a stop from Locations. Live camera scanning is coming soon." />
+                Body="Tour → Open AR camera. Point your phone at a campus building and its name and information appear on screen. It uses your camera, GPS and compass, so it works best outdoors." />
             <controls:InfoCard
-                Heading="02 · Explore"
+                Heading="02 · Look around in 360°"
                 HeadingColor="{StaticResource BcRed}"
-                Body="Open a location photo and use Info Points, Gallery and Floor Plan. True 360° viewing will arrive with the AR update." />
+                Body="Tour → Open 360° view, type a location code, or choose from locations. Look around by moving your phone (or swipe), and tap the arrows to walk to nearby views, like Google Street View." />
             <controls:InfoCard
-                Heading="03 · Learn"
+                Heading="03 · Use a VR headset"
                 HeadingColor="{StaticResource BcRed}"
-                Body="Listen to narration, read location information and save favourite stops. Mark visited locations to record your progress." />
+                Body="In a 360° view, tap VR headset and put your phone in a cheap Cardboard-style headset. Turn your head to look around; look at an arrow for 1.5 seconds to move to the next place. Press Back to leave VR." />
+            <controls:InfoCard
+                Heading="04 · Track your journey"
+                HeadingColor="{StaticResource BcRed}"
+                Body="Locations lists every place that has an AR scan or a 360° view, with its code and a photo. A place counts as visited once you see it in the AR camera or open its 360° view; your progress shows on Home." />
+            <controls:InfoCard
+                Heading="05 · Staff: add new places"
+                HeadingColor="{StaticResource BcRed}"
+                Body="On the Tour tab, staff sign in and use New AR scan (walk around a building to record its outline) or New 360° view (turn on the spot while the app takes photos). New places appear for every visitor automatically." />
 
             <Label
-                Text="Campus photos are included. Camera AR, QR scanning and 360° viewing are not available in this version yet."
+                Text="Map shows the campus layout for Main, North and West campus, with the same list of locations below it."
                 Style="{StaticResource MutedLabel}" />
 
             <Button Text="Start exploring" Command="{Binding StartExploringCommand}" />

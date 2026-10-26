@@ -1,0 +1,366 @@
+diff --git b/src/BCOpendayApp/ViewModels/MapViewModel.cs a/src/BCOpendayApp/ViewModels/MapViewModel.cs
+index a5ebc57..88665ed 100644
+--- b/src/BCOpendayApp/ViewModels/MapViewModel.cs
++++ a/src/BCOpendayApp/ViewModels/MapViewModel.cs
+@@ -1,30 +1,33 @@
+ using BCOpendayApp.Infrastructure;
++using BCOpendayApp.Models;
+ using BCOpendayApp.Services;
+-using BCOpendayApp.Services.Campus;
+ 
+ namespace BCOpendayApp.ViewModels;
+ 
+ /// <summary>
+-/// The campus map image (Main / North / West, with zoom) and the campus locations below it.
+-/// The numbered pins were removed because the map image already shows the layout; to bring them back,
+-/// apply docs/backups/restore-map-pins.patch.
++/// The campus map. Pins are the stops that have a map position (normalised 0-1 image coordinates, NOT GPS);
++/// the page draws them with <see cref="MapGeometry"/>. Opened with a stop id, it switches to that stop's map.
+ /// </summary>
+-public sealed class MapViewModel : CampusLocationsViewModelBase
++public sealed class MapViewModel : CatalogViewModelBase, IQueryAttributable
+ {
+-    private IReadOnlyList<LocationItemViewModel> items = Array.Empty<LocationItemViewModel>();
++    private IReadOnlyList<StopItemViewModel> stops = Array.Empty<StopItemViewModel>();
++    private IReadOnlyList<Hotspot> pinnedStops = Array.Empty<Hotspot>();
+     private CampusMap selectedMap = CampusCatalog.Maps[0];
++    private string requestedStopId = string.Empty;
++    private string mapStatus = string.Empty;
+     private double zoom = 1;
+ 
+     public MapViewModel(
+-        ICampusLocationService campus,
++        ILocationService locationService,
+         IVisitorProgressService visitorProgress,
+         INavigationService navigation,
+         IDialogService dialogs)
+-        : base(campus, visitorProgress, navigation, dialogs)
++        : base(locationService, visitorProgress, navigation, dialogs)
+     {
+         SelectSectionCommand = CreateCommand<string>(sectionId =>
+         {
+             SelectMap(CampusCatalog.Map(sectionId));
++            RefreshPins();
+             return Task.CompletedTask;
+         });
+ 
+@@ -33,6 +36,9 @@ public sealed class MapViewModel : CampusLocationsViewModelBase
+             Zoom = 1;
+             return Task.CompletedTask;
+         });
++
++        // Tapping a pin opens the information page for that stop.
++        OpenInfoCommand = CreateCommand<Hotspot>(stop => Navigation.GoToStopAsync(Routes.StopInfo, stop.Id));
+     }
+ 
+     public CampusMap SelectedMap
+@@ -53,17 +59,100 @@ public double Zoom
+         set => SetProperty(ref zoom, value);
+     }
+ 
+-    public IReadOnlyList<LocationItemViewModel> Items
++    /// <summary>The stop the page was opened for (e.g. from "Floor Plan"); its pin is highlighted.</summary>
++    public string RequestedStopId
++    {
++        get => requestedStopId;
++        private set => SetProperty(ref requestedStopId, value);
++    }
++
++    /// <summary>Stops that have a pin on the map currently shown.</summary>
++    public IReadOnlyList<Hotspot> PinnedStops
++    {
++        get => pinnedStops;
++        private set => SetProperty(ref pinnedStops, value);
++    }
++
++    public string MapStatus
+     {
+-        get => items;
+-        private set => SetProperty(ref items, value);
++        get => mapStatus;
++        private set => SetProperty(ref mapStatus, value);
++    }
++
++    /// <summary>Why the stop the visitor asked for has no pin (empty when it has one).</summary>
++    public string RequestedStopMessage
++    {
++        get
++        {
++            var requested = Locations.FirstOrDefault(stop => stop.Id == requestedStopId);
++            return requested is { HasMapPosition: false } ? $"{requested.Name}: {requested.PositionNote}" : string.Empty;
++        }
++    }
++
++    public bool HasRequestedStopMessage => RequestedStopMessage.Length > 0;
++
++    public string UnplacedMessage
++    {
++        get
++        {
++            var unplaced = Locations.Count(stop => !stop.HasMapPosition);
++            return unplaced == 0
++                ? string.Empty
++                : unplaced == 1
++                    ? "1 tour stop has no map position. It remains available below; ask campus staff for directions."
++                    : $"{unplaced} tour stops have no map position. They remain available below; ask campus staff for directions.";
++        }
++    }
++
++    public bool HasUnplacedMessage => UnplacedMessage.Length > 0;
++
++    public IReadOnlyList<StopItemViewModel> Stops
++    {
++        get => stops;
++        private set => SetProperty(ref stops, value);
+     }
+ 
+     public AsyncCommand SelectSectionCommand { get; }
+ 
+     public AsyncCommand ResetZoomCommand { get; }
+ 
+-    protected override void OnLocationsLoaded() => Items = BuildItems(Locations);
++    public AsyncCommand OpenInfoCommand { get; }
++
++    public void ApplyQueryAttributes(IDictionary<string, object> query)
++    {
++        RequestedStopId = query.TryGetValue(Routes.StopIdParameter, out var value) && value is string text
++            ? text.Trim().ToLowerInvariant()
++            : string.Empty;
++
++        if (HasCatalogue)
++        {
++            OnCatalogueLoaded();
++        }
++    }
++
++    public override void OnDisappearing()
++    {
++        // The focus request only applies to the visit it was made for.
++        RequestedStopId = string.Empty;
++        base.OnDisappearing();
++    }
++
++    protected override void OnCatalogueLoaded()
++    {
++        var requested = Locations.FirstOrDefault(stop => stop.Id == requestedStopId);
++        if (requested is { HasMapPosition: true } && requested.MapSection != selectedMap.Id)
++        {
++            SelectMap(CampusCatalog.Map(requested.MapSection));
++        }
++
++        Stops = BuildItems(Locations);
++        RefreshPins();
++        OnPropertiesChanged(
++            nameof(RequestedStopMessage),
++            nameof(HasRequestedStopMessage),
++            nameof(UnplacedMessage),
++            nameof(HasUnplacedMessage));
++    }
+ 
+     private void SelectMap(CampusMap map)
+     {
+@@ -71,4 +160,15 @@ private void SelectMap(CampusMap map)
+         Zoom = 1;
+         OnPropertiesChanged(nameof(SelectedSectionId), nameof(MapTitle));
+     }
++
++    private void RefreshPins()
++    {
++        PinnedStops = Locations
++            .Where(stop => stop.HasMapPosition && stop.MapSection == selectedMap.Id)
++            .ToList();
++
++        MapStatus = pinnedStops.Count == 0
++            ? "No tour-stop positions are assigned to this map yet."
++            : string.Join(" | ", pinnedStops.Select(stop => $"{stop.SortOrder}: {stop.Name}")) + " - reference positions only.";
++    }
+ }
+diff --git b/src/BCOpendayApp/Views/MapPage.xaml a/src/BCOpendayApp/Views/MapPage.xaml
+index 859fb71..3efa390 100644
+--- b/src/BCOpendayApp/Views/MapPage.xaml
++++ a/src/BCOpendayApp/Views/MapPage.xaml
+@@ -15,7 +15,9 @@
+ 
+             <controls:PageHeader Title="Campus map" Subtitle="Plan your next stop." />
+ 
+-            <VerticalStackLayout Spacing="18">
++            <controls:CatalogStatusView />
++
++            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasCatalogue}">
+ 
+                 <Label Text="{Binding MapTitle}" Style="{StaticResource SectionTitleLabel}" />
+ 
+@@ -59,8 +61,8 @@
+                     </Button>
+                 </Grid>
+ 
+-                <!-- Pan by scrolling, zoom with the slider. The canvas size and the image are laid out in
+-                     MapPage.xaml.cs. (The numbered pins were removed: docs/backups/restore-map-pins.patch.) -->
++                <!-- Pan by scrolling, zoom with the slider. The canvas size, the image and the numbered pins
++                     are laid out in MapPage.xaml.cs (pin positions are fractions of the image size). -->
+                 <Border Style="{StaticResource Card}" Padding="8">
+                     <ScrollView x:Name="MapViewport" Orientation="Both" HeightRequest="420">
+                         <AbsoluteLayout
+@@ -75,6 +77,8 @@
+                     </ScrollView>
+                 </Border>
+ 
++                <Label Text="{Binding MapStatus}" Style="{StaticResource MutedLabel}" FontSize="14" />
++
+                 <Label Text="Map zoom" Style="{StaticResource SectionTitleLabel}" FontSize="16" />
+                 <Slider
+                     Minimum="1"
+@@ -86,17 +90,24 @@
+                     Style="{StaticResource SecondaryButton}"
+                     Command="{Binding ResetZoomCommand}" />
+ 
+-                <Label Text="Campus locations" Style="{StaticResource SectionTitleLabel}" />
+-                <ActivityIndicator IsRunning="{Binding ShowSpinner}" IsVisible="{Binding ShowSpinner}" Color="{StaticResource BcRed}" />
+                 <Label
+-                    Text="{Binding StatusMessage}"
+-                    Style="{StaticResource MutedLabel}"
+-                    FontSize="13"
+-                    IsVisible="{Binding HasNoLocations}" />
++                    Text="Tap a numbered reference pin for location information. Pins follow the supplied map image, not live GPS or turn-by-turn directions."
++                    Style="{StaticResource MutedLabel}" />
++
++                <Label
++                    Text="{Binding RequestedStopMessage}"
++                    TextColor="{StaticResource BcYellow}"
++                    IsVisible="{Binding HasRequestedStopMessage}" />
++                <Label
++                    Text="{Binding UnplacedMessage}"
++                    TextColor="{StaticResource BcYellow}"
++                    IsVisible="{Binding HasUnplacedMessage}" />
++
++                <Label Text="All tour locations" Style="{StaticResource SectionTitleLabel}" />
+                 <VerticalStackLayout
+-                    Spacing="12"
+-                    BindableLayout.ItemsSource="{Binding Items}"
+-                    BindableLayout.ItemTemplate="{StaticResource LocationRowTemplate}" />
++                    Spacing="14"
++                    BindableLayout.ItemsSource="{Binding Stops}"
++                    BindableLayout.ItemTemplate="{StaticResource StopCardTemplate}" />
+ 
+             </VerticalStackLayout>
+         </VerticalStackLayout>
+diff --git b/src/BCOpendayApp/Views/MapPage.xaml.cs a/src/BCOpendayApp/Views/MapPage.xaml.cs
+index fdd3bb9..ca61fbf 100644
+--- b/src/BCOpendayApp/Views/MapPage.xaml.cs
++++ a/src/BCOpendayApp/Views/MapPage.xaml.cs
+@@ -1,19 +1,21 @@
+ using System.ComponentModel;
++using BCOpendayApp.Models;
+ using BCOpendayApp.Services;
+ using BCOpendayApp.ViewModels;
+ 
+ namespace BCOpendayApp.Views;
+ 
+ /// <summary>
+-/// Lays out the campus map: the image fills a canvas whose size follows the zoom, inside a two-way ScrollView.
+-/// The numbered pins were removed (the map image already shows the layout); to restore them apply
+-/// docs/backups/restore-map-pins.patch.
++/// Lays out the campus map: the image fills a canvas whose size follows the zoom, and each stop that has a
++/// map position gets a numbered pin placed with <see cref="MapGeometry"/> (fractions of the image size).
+ /// </summary>
+ public partial class MapPage : BasePage
+ {
++    private const double PinSize = 44;
+     private const double FallbackViewportWidth = 320;
+ 
+     private readonly MapViewModel viewModel;
++    private readonly List<(Hotspot Stop, Button Pin)> pins = new();
+ 
+     public MapPage(MapViewModel viewModel)
+     {
+@@ -22,14 +24,7 @@ public MapPage(MapViewModel viewModel)
+ 
+         MapViewport.SizeChanged += (_, _) => ResizeMap();
+         viewModel.PropertyChanged += OnViewModelPropertyChanged;
+-        ShowMap();
+-    }
+-
+-    /// <summary>Map is a tab: Back returns to Home instead of closing the app.</summary>
+-    protected override bool OnBackButtonPressed()
+-    {
+-        Dispatcher.Dispatch(() => _ = Shell.Current.GoToAsync("//" + Routes.Home));
+-        return true;
++        RebuildPins();
+     }
+ 
+     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+@@ -37,7 +32,9 @@ private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs
+         switch (e.PropertyName)
+         {
+             case nameof(MapViewModel.SelectedMap):
+-                ShowMap();
++            case nameof(MapViewModel.PinnedStops):
++            case nameof(MapViewModel.RequestedStopId):
++                RebuildPins();
+                 break;
+             case nameof(MapViewModel.Zoom):
+                 ResizeMap();
+@@ -45,14 +42,50 @@ private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs
+         }
+     }
+ 
+-    private void ShowMap()
++    private void RebuildPins()
+     {
++        foreach (var (_, pin) in pins)
++        {
++            MapCanvas.Children.Remove(pin);
++        }
++
++        pins.Clear();
++
+         var map = viewModel.SelectedMap;
+         MapImage.Source = ImageSource.FromFile(map.Image);
+         SemanticProperties.SetDescription(MapImage, map.Title);
++
++        foreach (var stop in viewModel.PinnedStops)
++        {
++            var requested = stop.Id == viewModel.RequestedStopId;
++            var pin = new Button
++            {
++                Text = stop.SortOrder.ToString(),
++                TextColor = Colors.White,
++                BackgroundColor = AppColor("BcRed", Colors.Red),
++                WidthRequest = PinSize,
++                HeightRequest = PinSize,
++                MinimumWidthRequest = PinSize,
++                MinimumHeightRequest = PinSize,
++                Padding = 0,
++                CornerRadius = (int)(PinSize / 2),
++                BorderWidth = 2,
++                BorderColor = requested ? AppColor("BcYellow", Colors.Yellow) : Colors.White,
++                Command = viewModel.OpenInfoCommand,
++                CommandParameter = stop,
++            };
++            SemanticProperties.SetDescription(pin, $"{stop.Name}, map reference point. {stop.PositionNote}");
++
++            MapCanvas.Children.Add(pin);
++            pins.Add((stop, pin));
++        }
++
+         ResizeMap();
+     }
+ 
++    private static Color AppColor(string key, Color fallback) =>
++        Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color ? color : fallback;
++
+     /// <summary>Enlarging the canvas inside the two-way ScrollView is what makes a zoomed map pannable.</summary>
+     private void ResizeMap()
+     {
+@@ -71,5 +104,11 @@ private void ResizeMap()
+         MapImage.WidthRequest = width;
+         MapImage.HeightRequest = height;
+         AbsoluteLayout.SetLayoutBounds(MapImage, new Rect(0, 0, width, height));
++
++        foreach (var (stop, pin) in pins)
++        {
++            var (left, top) = MapGeometry.PinPosition(stop.X!.Value, stop.Y!.Value, width, height, PinSize);
++            AbsoluteLayout.SetLayoutBounds(pin, new Rect(left, top, PinSize, PinSize));
++        }
+     }
+ }

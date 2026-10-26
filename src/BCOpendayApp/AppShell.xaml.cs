@@ -11,7 +11,7 @@ public partial class AppShell : Shell
 
         // Pages pushed on top of the current tab. The root pages (splash/home/tour/map) are in AppShell.xaml.
         Routing.RegisterRoute(Routes.Locations, typeof(LocationsPage));
-        Routing.RegisterRoute(Routes.StartTour, typeof(StartTourPage));
+        Routing.RegisterRoute(Routes.LocationDetail, typeof(LocationDetailPage));
         Routing.RegisterRoute(Routes.StopViewer, typeof(StopViewerPage));
         Routing.RegisterRoute(Routes.StopInfo, typeof(StopInfoPage));
         Routing.RegisterRoute(Routes.StopGallery, typeof(StopGalleryPage));

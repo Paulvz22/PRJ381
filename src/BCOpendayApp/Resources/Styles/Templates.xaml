@@ -48,5 +48,31 @@
             </Grid>
         </Border>
     </DataTemplate>
+    <!-- Campus location row (Locations and Map pages). Tap anywhere on the card to open it. -->
+    <DataTemplate x:Key="LocationRowTemplate" x:DataType="vm:LocationItemViewModel">
+        <Border Style="{StaticResource Card}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding OpenCommand}" CommandParameter="{Binding Location}" />
+            </Border.GestureRecognizers>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Name}" Style="{StaticResource CardTitleLabel}" FontSize="18" />
+                    <Label
+                        Text="{Binding Description}"
+                        Style="{StaticResource MutedLabel}"
+                        MaxLines="2"
+                        LineBreakMode="TailTruncation"
+                        IsVisible="{Binding HasDescription}" />
+                    <Label Text="{Binding Details}" Style="{StaticResource EyebrowLabel}" FontSize="12" />
+                </VerticalStackLayout>
+                <Label
+                    Grid.Column="1"
+                    Text="›"
+                    FontSize="28"
+                    TextColor="{StaticResource BcRed}"
+                    VerticalOptions="Center" />
+            </Grid>
+        </Border>
+    </DataTemplate>
 
 </ResourceDictionary>
