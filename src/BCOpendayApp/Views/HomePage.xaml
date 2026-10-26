@@ -18,10 +18,10 @@
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="10">
                     <Image
-                        Source="campus_banner.png"
-                        Aspect="AspectFit"
+                        Source="campus_entrance.png"
+                        Aspect="AspectFill"
                         HeightRequest="220"
-                        SemanticProperties.Description="Belgium Campus welcome banner" />
+                        SemanticProperties.Description="Belgium Campus entrance sign" />
                     <Label
                         Text="Welcome to Belgium Campus"
                         Style="{StaticResource CardTitleLabel}"
@@ -40,7 +40,7 @@
                 ColumnSpacing="14"
                 RowDefinitions="Auto,Auto,Auto"
                 RowSpacing="14">
-                <controls:MenuTile Grid.Row="0" Grid.Column="0" Text="Start AR Tour" Icon="ar_tour.png" Command="{Binding StartTourCommand}" />
+                <controls:MenuTile Grid.Row="0" Grid.Column="0" Text="Start Tour" Icon="ar_tour.png" Command="{Binding StartTourCommand}" />
                 <controls:MenuTile Grid.Row="0" Grid.Column="1" Text="Locations" Icon="locations.png" Command="{Binding ShowLocationsCommand}" />
                 <controls:MenuTile Grid.Row="1" Grid.Column="0" Text="Map" Icon="map.png" Command="{Binding ShowMapCommand}" />
                 <controls:MenuTile Grid.Row="1" Grid.Column="1" Text="How It Works" Icon="how_it_works.png" Command="{Binding HowItWorksCommand}" />
@@ -50,8 +50,6 @@
 
             <Label Text="{Binding JourneyText}" Style="{StaticResource AccentLabel}" />
             <ProgressBar Progress="{Binding JourneyProgress}" ProgressColor="{StaticResource BcYellow}" />
-
-            <controls:CatalogStatusView />
 
         </VerticalStackLayout>
     </ScrollView>

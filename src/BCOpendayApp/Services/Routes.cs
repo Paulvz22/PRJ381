@@ -14,7 +14,7 @@ public static class Routes
 
     // Registered in AppShell.xaml.cs (navigate with INavigationService.GoToAsync)
     public const string Locations = "locations";
-    public const string StartTour = "start-tour";
+    public const string LocationDetail = "location";
     public const string StopViewer = "stop-viewer";
     public const string StopInfo = "stop-info";
     public const string StopGallery = "stop-gallery";

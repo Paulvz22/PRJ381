@@ -7,38 +7,41 @@
     xmlns:views="clr-namespace:BCOpendayApp.Views"
     xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
     x:DataType="vm:StartTourViewModel"
-    Title="AR Tour"
-    Shell.TabBarIsVisible="False">
+    Title="Tour"
+    Shell.NavBarIsVisible="False">
 
     <ScrollView>
         <VerticalStackLayout Style="{StaticResource PageContent}">
 
-            <controls:PageHeader Title="Start AR Tour" Subtitle="Choose a campus stop to begin exploring." />
+            <controls:PageHeader Title="Start Tour" Subtitle="Explore the campus with the AR camera or 360° views." />
 
-            <!-- AR guide entry. The AR view itself lives in the AR/ folder (ArViewerPage). -->
             <Border Style="{StaticResource Card}" Stroke="{StaticResource BcRedBrush}" StrokeThickness="2">
-                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
                     <Image
-                        Source="campus_banner.png"
+                        Source="campus_entrance.png"
                         Aspect="AspectFill"
-                        HeightRequest="160"
-                        Opacity="0.75"
-                        SemanticProperties.Description="Belgium Campus" />
+                        HeightRequest="180"
+                        SemanticProperties.Description="Belgium Campus entrance sign" />
                     <Label
                         Grid.Row="1"
-                        Text="Point your camera at a campus building to see its name and information."
+                        Text="Point your camera at a campus building to see its name, or look around a place in 360°."
                         Style="{StaticResource CardTitleLabel}"
                         FontSize="18" />
                     <Button Grid.Row="2" Text="Open AR camera" Command="{Binding OpenArCommand}" />
+                    <Button
+                        Grid.Row="3"
+                        Text="Open 360° view"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenPanoramaCommand}" />
                 </Grid>
             </Border>
 
             <Label
-                Text="Works best outdoors. The guide uses your camera, GPS and compass - allow camera and location when asked. You can also enter a location code below or choose from the directory."
+                Text="The AR camera works best outdoors and uses your camera, GPS and compass. To jump straight to a place's 360° view, type its location code (shown on each location) or choose it from the list."
                 Style="{StaticResource MutedLabel}" />
 
             <Entry
-                Placeholder="e.g. BC-ROBOTICS"
+                Placeholder="e.g. BC-LIBRARY"
                 Text="{Binding Code}"
                 MaxLength="40"
                 ReturnType="Go"
@@ -46,15 +49,28 @@
                 IsSpellCheckEnabled="False"
                 IsTextPredictionEnabled="False" />
 
-            <Button Text="Enter Code Manually" Command="{Binding OpenCodeCommand}" />
+            <Button Text="Enter code manually" Command="{Binding OpenCodeCommand}" />
             <Button
                 Text="Choose from locations"
                 Style="{StaticResource SecondaryButton}"
                 Command="{Binding ChooseLocationCommand}" />
-            <Button
-                Text="How scanning works"
-                Style="{StaticResource SecondaryButton}"
-                Command="{Binding HowItWorksCommand}" />
+
+            <!-- Staff only: both ask for the staff sign-in first. -->
+            <Label Text="Staff" Style="{StaticResource SectionTitleLabel}" />
+            <Label
+                Text="Signed-in staff can add new places. You are asked to sign in first."
+                Style="{StaticResource MutedLabel}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button
+                    Text="New AR scan"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding NewArScanCommand}" />
+                <Button
+                    Grid.Column="1"
+                    Text="New 360° view"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding NewPanoramaCommand}" />
+            </Grid>
 
         </VerticalStackLayout>
     </ScrollView>

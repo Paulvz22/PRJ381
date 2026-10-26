@@ -13,13 +13,13 @@
     <ScrollView>
         <VerticalStackLayout Style="{StaticResource PageContent}">
 
-            <controls:PageHeader Title="Campus locations" Subtitle="Explore learning spaces and student life." />
+            <controls:PageHeader Title="Campus locations" Subtitle="{Binding Subtitle}" />
 
-            <controls:CatalogStatusView />
+            <ActivityIndicator IsRunning="{Binding ShowSpinner}" IsVisible="{Binding ShowSpinner}" Color="{StaticResource BcRed}" />
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="13" />
 
-            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasCatalogue}">
-
-                <SearchBar Placeholder="Search locations" Text="{Binding SearchText}" />
+            <VerticalStackLayout Spacing="18" IsVisible="{Binding HasLocations}">
+                <SearchBar Placeholder="Search locations or codes" Text="{Binding SearchText}" />
 
                 <Label
                     Text="No locations match your search."
@@ -28,9 +28,14 @@
 
                 <VerticalStackLayout
                     Spacing="12"
-                    BindableLayout.ItemsSource="{Binding Stops}"
-                    BindableLayout.ItemTemplate="{StaticResource StopRowTemplate}" />
+                    BindableLayout.ItemsSource="{Binding Items}"
+                    BindableLayout.ItemTemplate="{StaticResource LocationRowTemplate}" />
             </VerticalStackLayout>
+
+            <Button
+                Text="Refresh"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding RefreshCommand}" />
 
         </VerticalStackLayout>
     </ScrollView>

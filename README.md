@@ -3,7 +3,7 @@
 An Android app that guides visitors around Belgium Campus during Open Day, and gives students a way to
 explore campus even if they can't attend in person.
 
-The app has two main parts:
+The app has three main parts:
 
 - **A self-guided campus tour** — campus stops with photos, descriptions and audio narration, a campus map
   with pins, and a progress tracker, all driven by data in Firebase Firestore with a bundled offline copy
@@ -12,6 +12,10 @@ The app has two main parts:
   screen, worked out from the phone's GPS and compass rather than a printed marker or a 3D scan. Behind it
   is a password-protected **staff scanner** that staff use to capture each building's location once, ahead
   of time.
+- **A 360° virtual tour** — look around each spot by moving the phone, and follow Street-View-style arrows to
+  the next view. Staff capture new views with the phone camera inside the app (same staff sign-in); arrows
+  between views are generated from each view's GPS position, and new views go online for every visitor. A VR mode works with cheap phone-in-headset viewers (look at an
+  arrow to walk there).
 
 ## Why it's built this way
 
@@ -49,11 +53,12 @@ That's enough to build and run the app on the bundled offline tour data — Fire
 Firebase sign-in are optional extras on top of this.
 
 **For everything else** — Firebase setup, troubleshooting restores, moving the team onto this structure,
-scanning buildings, and the full pre-Open-Day checklist — see **[`SETUP.md`](SETUP.md)**.
+scanning buildings, and the full pre-Open-Day checklist — see **[`docs/setup/SETUP.md`](docs/setup/SETUP.md)**.
 
 ## Documentation
 
-- [`SETUP.md`](SETUP.md) — full setup, build and deployment guide
+- [`docs/setup/SETUP.md`](docs/setup/SETUP.md) — full setup, build and deployment guide
 - [`docs/ar-guide.md`](docs/ar-guide.md) — how the AR guide and staff scanner work, and why
+- [`docs/panoramas.md`](docs/panoramas.md) — the 360° tour: capturing views in the app, automatic arrows, look-around by moving the phone
 - [`docs/location-data.md`](docs/location-data.md) — tour/location data, map pins, and the Firestore data flow
 - [`firebase/README.md`](firebase/README.md) — Firestore rules and seed data

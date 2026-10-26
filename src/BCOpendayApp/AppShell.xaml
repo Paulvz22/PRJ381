@@ -22,7 +22,7 @@
 
     <TabBar>
         <ShellContent Title="Home" Icon="tab_home" Route="home" ContentTemplate="{DataTemplate views:HomePage}" />
-        <ShellContent Title="Tour" Icon="tab_tour" Route="tour" ContentTemplate="{DataTemplate views:TourPage}" />
+        <ShellContent Title="Tour" Icon="tab_tour" Route="tour" ContentTemplate="{DataTemplate views:StartTourPage}" />
         <ShellContent Title="Map" Icon="tab_map" Route="map" ContentTemplate="{DataTemplate views:MapPage}" />
     </TabBar>
 

@@ -220,10 +220,16 @@
                             IsEnabled="{Binding TargetHasDescription}" />
                         <Button
                             Grid.Column="1"
-                            Text="Open tour stop"
+                            Text="Open location"
                             Command="{Binding OpenStopCommand}"
                             IsEnabled="{Binding TargetHasStop}" />
                     </Grid>
+                    <!-- Reads the description aloud; only within 15 m of a building that has a description. -->
+                    <Button
+                        Text="{Binding ListenButtonText}"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ListenCommand}"
+                        IsVisible="{Binding CanListen}" />
                 </VerticalStackLayout>
             </Border>
 

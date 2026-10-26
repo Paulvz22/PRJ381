@@ -1,8 +1,8 @@
 # AR building guide + staff scanner — setup and how it works
 
-Visitors open **Start AR Tour → Open AR camera** and point the phone at a campus building. The name, a
+Visitors open **Tour → Open AR camera** and point the phone at a campus building. The name, a
 summary and "More info" for that building appear over the live camera image. Staff use the
-**password-protected scanner** in the same app (**About → Staff: building scanner**) to record buildings.
+**password-protected scanner** in the same app (**Tour → New AR scan**) to record buildings.
 The scans are stored in **Firebase Firestore**, so every visitor gets them automatically. There is no sign-in
 or setup for visitors.
 
@@ -135,7 +135,7 @@ new account for any email someone typed into the scanner login.
   collection. Remove it when it's no longer needed.
 
 ### 4.4 Check
-Build the app with `Platforms/Android/google-services.json` in place, open *About → Staff: building scanner* and sign in.
+Build the app with `Platforms/Android/google-services.json` in place, open *Tour → New AR scan* and sign in.
 "This account is not allowed to use the scanner" means the `scanners/<uid>` document is missing or has the wrong ID.
 
 ---
@@ -144,7 +144,7 @@ Build the app with `Platforms/Android/google-services.json` in place, open *Abou
 
 Do this **outside**, ideally on a clear day. GPS is worst right against tall walls and under trees, so expect ±5–10 m there.
 
-1. *About → Staff: building scanner →* sign in → **+ Scan building**.
+1. *Tour → New AR scan →* sign in → **+ Scan building**.
 2. Fill in the **name**, a one-line **summary** (shown on the AR card), optional **More info** text, and optionally
    **link a tour stop** (the AR card then gets an *Open tour stop* button).
 3. Choose a method:
@@ -173,7 +173,7 @@ installs the APK and opens it straight away without data):
 
 ## 6. Visitors
 
-Install → open the app → **Start AR Tour → Open AR camera** → allow **camera** and **location** → point at a building.
+Install → open the app → **Tour → Open AR camera** → allow **camera** and **location** → point at a building.
 
 - The top bar shows GPS accuracy, the heading and how many buildings are nearby.
 - If labels seem consistently off, move the phone in a **figure-8** a few times to calibrate the compass.

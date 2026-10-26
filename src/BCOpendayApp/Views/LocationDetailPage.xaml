@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.LocationDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.ViewModels"
+    x:DataType="vm:LocationDetailViewModel"
+    Title="{Binding Name}"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource PageContent}">
+
+            <Border Style="{StaticResource Card}" Padding="0" IsVisible="{Binding HasPhoto}">
+                <Image
+                    Source="{Binding Photo}"
+                    Aspect="AspectFill"
+                    HeightRequest="230"
+                    SemanticProperties.Description="{Binding Name}" />
+            </Border>
+
+            <Label Text="{Binding Name}" Style="{StaticResource PageTitleLabel}" FontSize="26" />
+            <Label Text="{Binding Details}" Style="{StaticResource EyebrowLabel}" FontSize="13" />
+            <Label Text="{Binding Description}" />
+            <Label Text="{Binding Code}" Style="{StaticResource AccentLabel}" FontSize="15" />
+
+            <Button
+                Text="Open 360° view"
+                Command="{Binding OpenPanoramaCommand}"
+                IsVisible="{Binding HasPanorama}" />
+            <Button
+                Text="Find it with the AR camera"
+                Style="{StaticResource SecondaryButton}"
+                Command="{Binding OpenArCommand}"
+                IsVisible="{Binding HasAr}" />
+            <Label
+                Text="{Binding ArHint}"
+                Style="{StaticResource MutedLabel}"
+                FontSize="13"
+                IsVisible="{Binding HasAr}" />
+
+            <Label
+                Text="{Binding Message}"
+                TextColor="{StaticResource BcYellow}"
+                IsVisible="{Binding HasMessage}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource BcRed}" />
+
+            <!-- Staff only: one photo of the location (e.g. the front of the building). -->
+            <VerticalStackLayout Spacing="10" IsVisible="{Binding IsStaff}">
+                <Label Text="Staff: location photo" Style="{StaticResource SectionTitleLabel}" FontSize="16" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button
+                        Text="Take photo"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding TakePhotoCommand}" />
+                    <Button
+                        Grid.Column="1"
+                        Text="From gallery"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding PickPhotoCommand}" />
+                </Grid>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

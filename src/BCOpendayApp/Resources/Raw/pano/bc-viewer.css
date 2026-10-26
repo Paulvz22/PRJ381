@@ -1,0 +1,56 @@
+/* Belgium Campus Open Day - 360° viewer additions (see bc-viewer.js). */
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #08090B; }
+#panorama { width: 100%; height: 100%; }
+#panoramaR { display: none; }
+.pnlm-container { background: #08090B; }
+
+/* Arrow names: always shown while the arrow is on screen (not only when touched). */
+div.pnlm-tooltip span { visibility: visible; }
+div.pnlm-tooltip span:after {
+  content: ''; position: absolute; width: 0; height: 0; border-width: 10px; border-style: solid;
+  border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent; bottom: -20px; left: -10px; margin: 0 50%;
+}
+.bc-auto-link { filter: drop-shadow(0 0 4px rgba(255, 212, 0, 0.9)); }
+
+/* ---------------------------------------------------------------- VR (phone in a headset) */
+#bc-vr-tap { display: none; }
+.bc-eye-overlay { display: none; }
+
+body.bc-vr #panorama, body.bc-vr #panoramaR {
+  display: block; position: absolute; top: 0; width: 50%; height: 100%;
+}
+body.bc-vr #panorama { left: 0; }
+body.bc-vr #panoramaR { left: 50%; }
+body.bc-vr::after { /* thin divider between the eyes */
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
+  background: #000; z-index: 20;
+}
+
+/* Nothing can be tapped in the headset: hide Pannellum's buttons and title, and catch all touches. */
+body.bc-vr .pnlm-controls-container,
+body.bc-vr .pnlm-compass,
+body.bc-vr .pnlm-panorama-info,
+body.bc-vr .pnlm-about-msg { display: none !important; }
+body.bc-vr #bc-vr-tap { display: block; position: absolute; inset: 0; z-index: 30; }
+
+body.bc-vr .bc-eye-overlay {
+  display: block; position: absolute; inset: 0; z-index: 10; pointer-events: none;
+}
+.bc-reticle {
+  position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px;
+}
+.bc-reticle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.bc-ring-back { fill: none; stroke: rgba(255, 255, 255, 0.35); stroke-width: 3; }
+.bc-ring { fill: none; stroke: #FFD400; stroke-width: 4; stroke-linecap: round; }
+.bc-dot { fill: #FFFFFF; }
+.bc-gaze-label {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, 34px); visibility: hidden;
+  max-width: 80%; padding: 6px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.75); color: #FFFFFF;
+  font: 600 15px sans-serif; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bc-vr-hint {
+  position: absolute; left: 50%; bottom: 14%; transform: translateX(-50%); width: 80%; display: none;
+  padding: 10px 14px; border-radius: 12px; background: rgba(0, 0, 0, 0.75); color: #FFFFFF;
+  font: 14px sans-serif; text-align: center;
+}
+body.bc-hint .bc-vr-hint { display: block; }

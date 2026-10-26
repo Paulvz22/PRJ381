@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BCOpendayApp.Infrastructure;
 using BCOpendayApp.Panorama.Models;
 using BCOpendayApp.Panorama.Services;
+using BCOpendayApp.Scanner.Services;
 using BCOpendayApp.Services;
 using BCOpendayApp.ViewModels;
 using Microsoft.Maui.Devices;
@@ -9,17 +10,37 @@ using Microsoft.Maui.Storage;
 
 namespace BCOpendayApp.Panorama.ViewModels;
 
-public sealed record PanoramaDraftItem(PanoramaDraft Draft)
+public sealed record PanoramaDraftItem(PanoramaDraft Draft, bool IsOnline = false)
 {
     public string DisplayName => Draft.DisplayName;
 
-    public string Badge => "LOCAL";
+    public string Badge => (Draft.IsCaptured ? "CAPTURED" : "IMPORTED") + (IsOnline ? " · ONLINE" : " · THIS PHONE ONLY");
+
+    public string UploadText => IsOnline ? "Re-upload" : "Upload";
 
     public string Details =>
         $"{Draft.Width} × {Draft.Height} · {FormatSize(Draft.FileSizeBytes)} · "
         + DateTimeOffset.FromUnixTimeMilliseconds(Draft.CreatedAtUnixMs).ToLocalTime().ToString("g");
 
+    /// <summary>Whether the viewer can draw arrows to/from this view.</summary>
+    public string Placement => Draft.HasLocation && Draft.HasNorthOffset
+        ? $"Map position ±{Draft.LocationAccuracyMeters:0} m · arrows to nearby views are automatic"
+        : Draft.HasLocation
+            ? $"Map position ±{Draft.LocationAccuracyMeters:0} m · direction unknown, so it gets arrows only FROM other views"
+            : "No map position · not linked to other views";
+
     private static string FormatSize(long bytes) => $"{bytes / (1024d * 1024d):0.0} MB";
+}
+
+/// <summary>A view that is online (in Firestore), whichever phone uploaded it.</summary>
+public sealed record OnlinePanoramaItem(PanoramaManifest Manifest)
+{
+    public string Name => Manifest.Name;
+
+    public string Details =>
+        $"{Manifest.ByteLength / (1024d * 1024d):0.0} MB in {Manifest.ChunkCount} piece(s) · "
+        + DateTimeOffset.FromUnixTimeMilliseconds(Manifest.UpdatedAtUnixMs).ToLocalTime().ToString("g")
+        + (Manifest.HasLocation ? " · has map position" : " · no map position");
 }
 
 public sealed class PanoramaDraftsViewModel : ViewModelBase
@@ -31,7 +52,11 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
         });
 
     private readonly PanoramaDraftStore store;
+    private readonly IScannerAuthService auth;
+    private readonly PanoramaOnlineLibrary online;
     private IReadOnlyList<PanoramaDraftItem> drafts = Array.Empty<PanoramaDraftItem>();
+    private IReadOnlyList<OnlinePanoramaItem> onlineViews = Array.Empty<OnlinePanoramaItem>();
+    private string onlineStatus = string.Empty;
     private PendingImport? pending;
     private string pendingPreviewPath = string.Empty;
     private string pendingName = string.Empty;
@@ -41,11 +66,17 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
 
     public PanoramaDraftsViewModel(
         PanoramaDraftStore store,
+        IScannerAuthService auth,
+        PanoramaOnlineLibrary online,
         INavigationService navigation,
         IDialogService dialogs)
         : base(navigation, dialogs)
     {
         this.store = store;
+        this.auth = auth;
+        this.online = online;
+        UploadCommand = CreateCommand<PanoramaDraftItem>(UploadAsync);
+        DeleteOnlineCommand = CreateCommand<OnlinePanoramaItem>(DeleteOnlineAsync);
 
         ImportCommand = CreateCommand(ImportAsync);
         SavePendingCommand = CreateCommand(SavePendingAsync);
@@ -57,6 +88,9 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
         });
         OpenCommand = CreateCommand<PanoramaDraftItem>(OpenAsync);
         DeleteCommand = CreateCommand<PanoramaDraftItem>(DeleteAsync);
+        ExportCommand = CreateCommand<PanoramaDraftItem>(ExportAsync);
+        CaptureCommand = CreateCommand(() => Navigation.GoToAsync(PanoramaRoutes.Capture));
+        OpenTourCommand = CreateCommand(() => Navigation.GoToAsync(Routes.Pano));
         BackCommand = CreateCommand(() => Navigation.GoBackAsync());
     }
 
@@ -127,10 +161,53 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
 
     public AsyncCommand BackCommand { get; }
 
+    /// <summary>Shares the image + a tour.json scene so the view can be bundled for every visitor.</summary>
+    public AsyncCommand ExportCommand { get; }
+
+    /// <summary>Staff: capture a new 360° view with the camera.</summary>
+    public AsyncCommand CaptureCommand { get; }
+
+    /// <summary>Opens the whole tour (bundled scenes + online + the ones on this phone, with their arrows).</summary>
+    public AsyncCommand OpenTourCommand { get; }
+
+    /// <summary>Puts a view online for every visitor (Firestore).</summary>
+    public AsyncCommand UploadCommand { get; }
+
+    /// <summary>Removes an online view for every visitor.</summary>
+    public AsyncCommand DeleteOnlineCommand { get; }
+
+    public IReadOnlyList<OnlinePanoramaItem> OnlineViews
+    {
+        get => onlineViews;
+        private set
+        {
+            if (SetProperty(ref onlineViews, value))
+            {
+                OnPropertyChanged(nameof(HasNoOnlineViews));
+            }
+        }
+    }
+
+    public bool HasNoOnlineViews => onlineViews.Count == 0;
+
+    public string OnlineStatus
+    {
+        get => onlineStatus;
+        private set => SetProperty(ref onlineStatus, value);
+    }
+
     public override async void OnAppearing()
     {
         try
         {
+            // Adding views is for staff only: the same sign-in as the building scanner.
+            if (!auth.IsUnlocked)
+            {
+                await Dialogs.AlertAsync("Staff only", "Sign in on the staff screen (About → Staff tools) to add 360° views.");
+                await Navigation.GoBackAsync();
+                return;
+            }
+
             await LoadAsync();
         }
         catch (Exception exception)
@@ -152,10 +229,18 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
         try
         {
             var loaded = await store.LoadAsync();
-            Drafts = loaded.Select(draft => new PanoramaDraftItem(draft)).ToList();
+            var list = await online.GetListAsync();
+            var onlineIds = list.Manifests.Select(m => m.Id).ToHashSet(StringComparer.Ordinal);
+            Drafts = loaded.Select(draft => new PanoramaDraftItem(draft, onlineIds.Contains(draft.Id))).ToList();
+            OnlineViews = list.Manifests.OrderByDescending(m => m.UpdatedAtUnixMs).Select(m => new OnlinePanoramaItem(m)).ToList();
+            OnlineStatus = !online.IsConfigured
+                ? "Firebase is not set up in this build, so views cannot be put online (add google-services.json and rebuild)."
+                : list.IsFresh
+                    ? $"{OnlineViews.Count} view(s) online - every visitor sees these."
+                    : list.Message;
             StatusMessage = Drafts.Count == 0
-                ? "No local panorama drafts yet."
-                : $"{Drafts.Count} local draft(s). Stored on this phone only.";
+                ? "No views on this phone yet."
+                : $"{Drafts.Count} view(s) on this phone.";
         }
         finally
         {
@@ -275,8 +360,10 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
         }
 
         if (!await Dialogs.ConfirmAsync(
-                "Delete local draft?",
-                $"'{item.DisplayName}' will be removed from this phone. This cannot be undone.",
+                "Delete from this phone?",
+                item.IsOnline
+                    ? $"'{item.DisplayName}' will be removed from this phone. It stays ONLINE for visitors - remove it under \"Online views\" for that."
+                    : $"'{item.DisplayName}' will be removed from this phone. It was never uploaded, so it will be gone for good.",
                 "Delete",
                 "Cancel"))
         {
@@ -299,6 +386,102 @@ public sealed class PanoramaDraftsViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private async Task UploadAsync(PanoramaDraftItem item)
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        if (!auth.IsUnlocked || auth.StaffUid is not { Length: > 0 } uid)
+        {
+            await Dialogs.AlertAsync("Signed out", "Your staff session has ended. Sign in again to upload.");
+            return;
+        }
+
+        if (!online.IsConfigured)
+        {
+            await Dialogs.AlertAsync("Firebase not set up", OnlineStatus);
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var image = await File.ReadAllBytesAsync(store.GetImagePath(item.Draft));
+            StatusMessage = $"Uploading '{item.DisplayName}'...";
+            var progress = new Progress<double>(value => StatusMessage = $"Uploading '{item.DisplayName}'... {value:P0}");
+            await online.UploadAsync(item.Draft, image, uid, progress);
+            await LoadAsync();
+            StatusMessage = $"'{item.DisplayName}' is online. Visitors see it the next time they open the 360° tour.";
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+            StatusMessage = "Upload failed - the view is still on this phone.";
+            await Dialogs.AlertAsync(
+                "Upload failed",
+                "Check the internet connection and that your account is on the scanner list, then try again.\n\n" + exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task DeleteOnlineAsync(OnlinePanoramaItem item)
+    {
+        if (isBusy
+            || !await Dialogs.ConfirmAsync(
+                "Remove for all visitors?",
+                $"'{item.Name}' will disappear from the 360° tour on every phone. Copies saved on staff phones are kept.",
+                "Remove",
+                "Cancel"))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            await online.DeleteAsync(item.Manifest);
+            await LoadAsync();
+            StatusMessage = $"'{item.Name}' is no longer online.";
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+            await Dialogs.AlertAsync("Could not remove it", "Check the connection and try again.\n\n" + exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ExportAsync(PanoramaDraftItem item)
+    {
+        var draft = item.Draft;
+        var sceneId = PanoramaExport.SceneId(draft);
+        var folder = Path.Combine(FileSystem.Current.CacheDirectory, "panorama-export");
+        Directory.CreateDirectory(folder);
+
+        var imagePath = Path.Combine(folder, sceneId + Path.GetExtension(draft.FileName));
+        var scenePath = Path.Combine(folder, sceneId + ".scene.json");
+        File.Copy(store.GetImagePath(draft), imagePath, overwrite: true);
+        await File.WriteAllTextAsync(scenePath, PanoramaExport.SceneJson(draft));
+
+        await Share.Default.RequestAsync(new ShareMultipleFilesRequest
+        {
+            Title = $"Export {draft.DisplayName}",
+            Files = new List<ShareFile>
+            {
+                new(imagePath, draft.FileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/jpeg"),
+                new(scenePath, "application/json"),
+            },
+        });
     }
 
     private static async Task<string> CopyToPrivateTemporaryFileAsync(FileResult selected)

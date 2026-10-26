@@ -2,9 +2,9 @@ using BCOpendayApp.ViewModels;
 
 namespace BCOpendayApp.Views;
 
-public partial class TourPage : BasePage
+public partial class LocationDetailPage : BasePage
 {
-    public TourPage(TourViewModel viewModel)
+    public LocationDetailPage(LocationDetailViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = viewModel;

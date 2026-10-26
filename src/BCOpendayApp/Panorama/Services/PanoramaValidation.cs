@@ -159,8 +159,17 @@ public static class PanoramaDraftValidation
 
     public static bool IsValid(PanoramaDraft? draft)
     {
-        if (draft is null
-            || !PanoramaLocalFiles.IsSafeDraftId(draft.Id)
+        if (draft is null || !HasValidOptionalPlacement(draft))
+        {
+            return false;
+        }
+
+        if (draft.CaptureMethod == PanoramaDraft.InAppCaptureMethod)
+        {
+            return IsValidCapture(draft);
+        }
+
+        if (!PanoramaLocalFiles.IsSafeDraftId(draft.Id)
             || !PanoramaLocalFiles.IsSafeDraftFileName(draft.FileName)
             || string.IsNullOrWhiteSpace(draft.DisplayName)
             || draft.DisplayName.Length > 100
@@ -188,4 +197,65 @@ public static class PanoramaDraftValidation
 
         return string.Equals(draft.FileName, expectedFileName, StringComparison.Ordinal);
     }
+
+    /// <summary>A panorama captured and stitched in the app: a 360° strip, always JPEG.</summary>
+    private static bool IsValidCapture(PanoramaDraft draft)
+    {
+        if (!PanoramaLocalFiles.IsSafeDraftId(draft.Id)
+            || !string.Equals(draft.FileName, draft.Id + ".jpg", StringComparison.Ordinal)
+            || string.IsNullOrWhiteSpace(draft.DisplayName)
+            || draft.DisplayName.Length > 100
+            || draft.Projection != PanoramaDraft.EquirectangularProjection
+            || draft.IsFullSphere
+            || draft.Width < PanoramaCaptureRules.MinWidth
+            || draft.Width > PanoramaImageRules.MaxWidth
+            || draft.Height < PanoramaCaptureRules.MinHeight
+            || draft.Height > PanoramaImageRules.MaxHeight
+            || !double.IsFinite(draft.VerticalFovDegrees)
+            || draft.VerticalFovDegrees < PanoramaCaptureRules.MinVerticalFov
+            || draft.VerticalFovDegrees > PanoramaCaptureRules.MaxVerticalFov
+            || draft.PhotoCount < 1
+            || draft.FileSizeBytes <= 0
+            || draft.FileSizeBytes > PanoramaImageRules.MaxFileSizeBytes
+            || draft.CreatedAtUnixMs <= 0
+            || draft.CreatedAtUnixMs > MaxUnixTimeMilliseconds)
+        {
+            return false;
+        }
+
+        // A 360° strip: width/height must match 360°/vertical FOV (pixels are square), within 3%.
+        var expectedRatio = 360 / draft.VerticalFovDegrees;
+        var ratio = draft.Width / (double)draft.Height;
+        return Math.Abs(ratio - expectedRatio) <= expectedRatio * 0.03;
+    }
+
+    /// <summary>Location and north offset are optional; when present they must be real values.</summary>
+    private static bool HasValidOptionalPlacement(PanoramaDraft draft)
+    {
+        if (draft.HasLocation
+            && (!double.IsFinite(draft.Latitude) || !double.IsFinite(draft.Longitude)
+                || Math.Abs(draft.Latitude) > 90 || Math.Abs(draft.Longitude) > 180
+                || (draft.Latitude == 0 && draft.Longitude == 0)
+                || !double.IsFinite(draft.LocationAccuracyMeters) || draft.LocationAccuracyMeters < 0))
+        {
+            return false;
+        }
+
+        if ((draft.LocationId ?? string.Empty).Length > 40 || (draft.Description ?? string.Empty).Length > 300)
+        {
+            return false;
+        }
+
+        return !draft.HasNorthOffset
+            || (double.IsFinite(draft.NorthOffsetDegrees) && draft.NorthOffsetDegrees >= 0 && draft.NorthOffsetDegrees < 360);
+    }
+}
+
+/// <summary>Limits for panoramas captured with the camera inside the app.</summary>
+public static class PanoramaCaptureRules
+{
+    public const int MinWidth = 1024;
+    public const int MinHeight = 64;
+    public const double MinVerticalFov = 10;
+    public const double MaxVerticalFov = 179;
 }

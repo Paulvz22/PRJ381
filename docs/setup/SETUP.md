@@ -89,6 +89,14 @@ These steps are for the AR scanner:
 - [ ] Start AR Tour → **Open AR camera**: camera shows, the top bar shows GPS ±m and a heading, and pointing at a scanned building
       shows its card (and the floating label)
 - [ ] Scanner: wrong password is refused; an account not in `scanners` is refused; Sign out and lock works
+- [ ] Scanner: walking from one corner to the next, the GPS line keeps updating (no need for "Test in AR")
+- [ ] 360° tour (About → 360 virtual tour): moving the phone turns the view; the chip switches to swiping
+- [ ] 360° tour → **VR headset**: side-by-side view, follows your head; looking at an arrow for 1.5 s opens that view;
+      Back leaves VR
+- [ ] Staff tools → 360° views → capture a view at two spots ~20 m apart: each shows an arrow to the other,
+      pointing the right way (see `docs/panoramas.md`)
+- [ ] After publishing the new `firestore.rules`: a captured view says "It is online", and a SECOND phone sees it
+      in About → 360 virtual tour without a rebuild
 - [ ] Airplane mode: tour, map and AR still work with the saved or bundled data
 - [ ] A teammate who previously had restore errors can build
 

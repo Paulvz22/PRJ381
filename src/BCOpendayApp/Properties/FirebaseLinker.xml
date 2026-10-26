@@ -3,5 +3,8 @@
     <type fullname="BCOpendayApp.Models.FirestoreHotspotDocument" preserve="all" />
     <type fullname="BCOpendayApp.AR.Data.FirestoreBuildingDocument" preserve="all" />
     <type fullname="BCOpendayApp.Scanner.Services.ScannerDocument" preserve="all" />
+    <type fullname="BCOpendayApp.Panorama.Services.FirestorePanoramaDocument" preserve="all" />
+    <type fullname="BCOpendayApp.Panorama.Services.FirestorePanoramaChunk" preserve="all" />
+    <type fullname="BCOpendayApp.Services.Campus.FirestoreLocationPhoto" preserve="all" />
   </assembly>
 </linker>

@@ -1,21 +1,19 @@
 using System.ComponentModel;
-using BCOpendayApp.Models;
 using BCOpendayApp.Services;
 using BCOpendayApp.ViewModels;
 
 namespace BCOpendayApp.Views;
 
 /// <summary>
-/// Lays out the campus map: the image fills a canvas whose size follows the zoom, and each stop that has a
-/// map position gets a numbered pin placed with <see cref="MapGeometry"/> (fractions of the image size).
+/// Lays out the campus map: the image fills a canvas whose size follows the zoom, inside a two-way ScrollView.
+/// The numbered pins were removed (the map image already shows the layout); to restore them apply
+/// docs/backups/restore-map-pins.patch.
 /// </summary>
 public partial class MapPage : BasePage
 {
-    private const double PinSize = 44;
     private const double FallbackViewportWidth = 320;
 
     private readonly MapViewModel viewModel;
-    private readonly List<(Hotspot Stop, Button Pin)> pins = new();
 
     public MapPage(MapViewModel viewModel)
     {
@@ -24,7 +22,14 @@ public partial class MapPage : BasePage
 
         MapViewport.SizeChanged += (_, _) => ResizeMap();
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
-        RebuildPins();
+        ShowMap();
+    }
+
+    /// <summary>Map is a tab: Back returns to Home instead of closing the app.</summary>
+    protected override bool OnBackButtonPressed()
+    {
+        Dispatcher.Dispatch(() => _ = Shell.Current.GoToAsync("//" + Routes.Home));
+        return true;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -32,9 +37,7 @@ public partial class MapPage : BasePage
         switch (e.PropertyName)
         {
             case nameof(MapViewModel.SelectedMap):
-            case nameof(MapViewModel.PinnedStops):
-            case nameof(MapViewModel.RequestedStopId):
-                RebuildPins();
+                ShowMap();
                 break;
             case nameof(MapViewModel.Zoom):
                 ResizeMap();
@@ -42,49 +45,13 @@ public partial class MapPage : BasePage
         }
     }
 
-    private void RebuildPins()
+    private void ShowMap()
     {
-        foreach (var (_, pin) in pins)
-        {
-            MapCanvas.Children.Remove(pin);
-        }
-
-        pins.Clear();
-
         var map = viewModel.SelectedMap;
         MapImage.Source = ImageSource.FromFile(map.Image);
         SemanticProperties.SetDescription(MapImage, map.Title);
-
-        foreach (var stop in viewModel.PinnedStops)
-        {
-            var requested = stop.Id == viewModel.RequestedStopId;
-            var pin = new Button
-            {
-                Text = stop.SortOrder.ToString(),
-                TextColor = Colors.White,
-                BackgroundColor = AppColor("BcRed", Colors.Red),
-                WidthRequest = PinSize,
-                HeightRequest = PinSize,
-                MinimumWidthRequest = PinSize,
-                MinimumHeightRequest = PinSize,
-                Padding = 0,
-                CornerRadius = (int)(PinSize / 2),
-                BorderWidth = 2,
-                BorderColor = requested ? AppColor("BcYellow", Colors.Yellow) : Colors.White,
-                Command = viewModel.OpenInfoCommand,
-                CommandParameter = stop,
-            };
-            SemanticProperties.SetDescription(pin, $"{stop.Name}, map reference point. {stop.PositionNote}");
-
-            MapCanvas.Children.Add(pin);
-            pins.Add((stop, pin));
-        }
-
         ResizeMap();
     }
-
-    private static Color AppColor(string key, Color fallback) =>
-        Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color ? color : fallback;
 
     /// <summary>Enlarging the canvas inside the two-way ScrollView is what makes a zoomed map pannable.</summary>
     private void ResizeMap()
@@ -104,11 +71,5 @@ public partial class MapPage : BasePage
         MapImage.WidthRequest = width;
         MapImage.HeightRequest = height;
         AbsoluteLayout.SetLayoutBounds(MapImage, new Rect(0, 0, width, height));
-
-        foreach (var (stop, pin) in pins)
-        {
-            var (left, top) = MapGeometry.PinPosition(stop.X!.Value, stop.Y!.Value, width, height, PinSize);
-            AbsoluteLayout.SetLayoutBounds(pin, new Rect(left, top, PinSize, PinSize));
-        }
     }
 }

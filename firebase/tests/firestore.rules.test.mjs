@@ -20,6 +20,8 @@ before(async () => {
     await setDoc(doc(db, 'locations', 'library', 'private', 'note'), { internal: true });
     await setDoc(doc(db, 'scanners', 'staff'), { name: 'Scanner staff' });
     await setDoc(doc(db, 'buildings', 'main'), building('staff'));
+    await setDoc(doc(db, 'panoramas', PANO_ID), panorama('staff'));
+    await setDoc(doc(db, 'panoramas', PANO_ID, 'chunks', '0'), chunk(0));
   });
 });
 after(async () => { if (environment) await environment.cleanup(); });
@@ -37,6 +39,19 @@ const unlistedPasswordUser = () => environment.authenticatedContext('stranger', 
 const anonymousWithStaffUid = () => environment.authenticatedContext('staff', {
   firebase: { sign_in_provider: 'anonymous', identities: {} }
 }).firestore();
+const PANO_ID = 'a'.repeat(32);
+function panorama(uid, overrides = {}) {
+  return {
+    name: 'Library entrance', width: 4096, height: 711, verticalFov: 62.5, isFullSphere: false,
+    captureMethod: 'in-app-capture', photoCount: 10, hasLocation: true, lat: -25.7545, lng: 28.1879,
+    accuracyMeters: 4.5, hasNorthOffset: true, northOffset: 0.5, mimeType: 'image/jpeg', chunkCount: 1,
+    byteLength: 3, sha256: 'b'.repeat(64), uploadId: 'c'.repeat(32), updatedAtUnixMs: 1760000000000,
+    updatedBy: uid, ...overrides
+  };
+}
+function chunk(index, overrides = {}) {
+  return { data: 'AAAA', uploadId: 'c'.repeat(32), index, ...overrides };
+}
 function building(uid, overrides = {}) {
   return {
     name: 'Main Building', summary: 'Reception and lecture halls', description: '', stopId: '',
@@ -122,4 +137,71 @@ test('a scanner can read only its own allow-list entry', async () => {
 test('nobody can add themselves to the scanner list from the app', async () => {
   await assertFails(setDoc(doc(unlistedPasswordUser(), 'scanners', 'stranger'), { name: 'Me' }));
   await assertFails(setDoc(doc(staff(), 'scanners', 'staff'), { name: 'Changed' }));
+});
+
+// ---- 360° views (panoramas + their image pieces) ----------------------------------------
+test('visitors can read 360° views and their image pieces', async () => {
+  await assertSucceeds(getDoc(doc(visitor(), 'panoramas', PANO_ID)));
+  await assertSucceeds(getDocs(collection(visitor(), 'panoramas')));
+  await assertSucceeds(getDoc(doc(visitor(), 'panoramas', PANO_ID, 'chunks', '0')));
+});
+test('signed-out users cannot read 360° views', async () => {
+  await assertFails(getDoc(doc(guest(), 'panoramas', PANO_ID)));
+  await assertFails(getDoc(doc(guest(), 'panoramas', PANO_ID, 'chunks', '0')));
+});
+test('a listed scanner account can upload and remove a 360° view', async () => {
+  const id = 'd'.repeat(32);
+  await assertSucceeds(setDoc(doc(staff(), 'panoramas', id, 'chunks', '0'), chunk(0)));
+  await assertSucceeds(setDoc(doc(staff(), 'panoramas', id, 'chunks', '15'), chunk(15)));
+  await assertSucceeds(setDoc(doc(staff(), 'panoramas', id), panorama('staff')));
+  await assertSucceeds(deleteDoc(doc(staff(), 'panoramas', id)));
+  await assertSucceeds(deleteDoc(doc(staff(), 'panoramas', id, 'chunks', '0')));
+});
+test('visitors and unlisted accounts cannot upload or remove 360° views', async () => {
+  await assertFails(setDoc(doc(visitor(), 'panoramas', 'e'.repeat(32)), panorama('visitor')));
+  await assertFails(setDoc(doc(visitor(), 'panoramas', PANO_ID, 'chunks', '1'), chunk(1)));
+  await assertFails(deleteDoc(doc(visitor(), 'panoramas', PANO_ID)));
+  await assertFails(deleteDoc(doc(visitor(), 'panoramas', PANO_ID, 'chunks', '0')));
+  await assertFails(setDoc(doc(unlistedPasswordUser(), 'panoramas', 'e'.repeat(32)), panorama('stranger')));
+  await assertFails(setDoc(doc(anonymousWithStaffUid(), 'panoramas', PANO_ID, 'chunks', '1'), chunk(1)));
+});
+test('360° view documents must be valid', async () => {
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'not-a-hex-id'), panorama('staff')));
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'f'.repeat(32)), panorama('someone-else')));
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'f'.repeat(32)), panorama('staff', { chunkCount: 17 })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'f'.repeat(32)), panorama('staff', { lat: 123 })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'f'.repeat(32)), panorama('staff', { mimeType: 'text/html' })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', 'f'.repeat(32)), panorama('staff', { extra: 1 })));
+});
+test('360° image pieces must be numbered 0-15, sized and labelled correctly', async () => {
+  await assertFails(setDoc(doc(staff(), 'panoramas', PANO_ID, 'chunks', '16'), chunk(16)));
+  await assertFails(setDoc(doc(staff(), 'panoramas', PANO_ID, 'chunks', '2'), chunk(3)));
+  await assertFails(setDoc(doc(staff(), 'panoramas', PANO_ID, 'chunks', '2'), chunk(2, { data: 'A'.repeat(700001) })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', PANO_ID, 'chunks', '2'), chunk(2, { extra: true })));
+});
+test('360° views can name their campus location and description', async () => {
+  const id = '9'.repeat(32);
+  await assertSucceeds(setDoc(doc(staff(), 'panoramas', id), panorama('staff', { locationId: 'library', description: 'Study rooms' })));
+  await assertSucceeds(setDoc(doc(staff(), 'panoramas', id), panorama('staff', { locationId: '' })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', id), panorama('staff', { locationId: 'Not Valid!' })));
+  await assertFails(setDoc(doc(staff(), 'panoramas', id), panorama('staff', { description: 'x'.repeat(301) })));
+});
+
+function locationPhoto(uid, overrides = {}) {
+  return { data: 'AAAA', sha256: 'b'.repeat(64), mimeType: 'image/jpeg', updatedAtUnixMs: 1760000000000, updatedBy: uid, ...overrides };
+}
+test('visitors can read a location photo but not list or change them', async () => {
+  await assertSucceeds(getDoc(doc(visitor(), 'locationPhotos', 'library')));
+  await assertFails(getDoc(doc(guest(), 'locationPhotos', 'library')));
+  await assertFails(getDocs(collection(visitor(), 'locationPhotos')));
+  await assertFails(setDoc(doc(visitor(), 'locationPhotos', 'library'), locationPhoto('visitor')));
+  await assertFails(setDoc(doc(unlistedPasswordUser(), 'locationPhotos', 'library'), locationPhoto('stranger')));
+});
+test('a listed scanner account can set and remove a valid location photo', async () => {
+  await assertSucceeds(setDoc(doc(staff(), 'locationPhotos', 'library'), locationPhoto('staff')));
+  await assertSucceeds(deleteDoc(doc(staff(), 'locationPhotos', 'library')));
+  await assertFails(setDoc(doc(staff(), 'locationPhotos', 'Bad Id'), locationPhoto('staff')));
+  await assertFails(setDoc(doc(staff(), 'locationPhotos', 'library'), locationPhoto('someone-else')));
+  await assertFails(setDoc(doc(staff(), 'locationPhotos', 'library'), locationPhoto('staff', { data: 'A'.repeat(800001) })));
+  await assertFails(setDoc(doc(staff(), 'locationPhotos', 'library'), locationPhoto('staff', { mimeType: 'image/png' })));
 });

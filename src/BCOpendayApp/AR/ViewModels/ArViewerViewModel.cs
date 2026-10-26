@@ -37,6 +37,9 @@ public sealed class ArViewerViewModel : ViewModelBase
     private bool isDetailsOpen;
     private bool cameraAllowed;
     private bool locationAllowed = true;
+    private readonly IVisitorProgressService visitorProgress;
+    private readonly INarrationService narration;
+    private bool narrationInRange;
     private string dataMessage = "Loading buildings...";
     private string statusText = "Starting sensors...";
     private string hintText = string.Empty;
@@ -68,6 +71,8 @@ public sealed class ArViewerViewModel : ViewModelBase
         IBuildingRepository repository,
         IArSensorService sensors,
         IAnalyticsService analytics,
+        IVisitorProgressService visitorProgress,
+        INarrationService narration,
         INavigationService navigation,
         IDialogService dialogs)
         : base(navigation, dialogs)
@@ -75,6 +80,8 @@ public sealed class ArViewerViewModel : ViewModelBase
         this.repository = repository;
         this.sensors = sensors;
         this.analytics = analytics;
+        this.visitorProgress = visitorProgress;
+        this.narration = narration;
 
         ToggleDetailsCommand = CreateCommand(() =>
         {
@@ -82,6 +89,7 @@ public sealed class ArViewerViewModel : ViewModelBase
             return Task.CompletedTask;
         });
         OpenStopCommand = CreateCommand(OpenStopAsync);
+        ListenCommand = CreateCommand(ToggleNarrationAsync);
         RefreshCommand = CreateCommand(() => LoadBuildingsAsync(forceRefresh: true));
         CloseCommand = CreateCommand(() => Navigation.GoBackAsync());
         OpenSettingsCommand = CreateCommand(() =>
@@ -178,7 +186,8 @@ public sealed class ArViewerViewModel : ViewModelBase
 
     public string TargetDistance => target is null ? string.Empty : $"About {FormatDistance(target.DistanceMeters)} away";
 
-    public bool TargetHasStop => target is { Building.StopId.Length: > 0 };
+    /// <summary>Every scanned building is a campus location, so its location page can always be opened.</summary>
+    public bool TargetHasStop => target is not null;
 
     public bool IsDetailsOpen
     {
@@ -199,6 +208,17 @@ public sealed class ArViewerViewModel : ViewModelBase
     public AsyncCommand ToggleDetailsCommand { get; }
 
     public AsyncCommand OpenStopCommand { get; }
+
+    /// <summary>Reads the building's description aloud with the phone's voice (or stops it).</summary>
+    public AsyncCommand ListenCommand { get; }
+
+    /// <summary>
+    /// The "Listen" button: the building has a description and the visitor is within 15 m of it
+    /// (<see cref="NarrationRange"/>). It stays while the narration plays, so it can always be stopped.
+    /// </summary>
+    public bool CanListen => TargetHasDescription && (narrationInRange || narration.IsSpeaking);
+
+    public string ListenButtonText => narration.IsSpeaking ? "\u25A0  Stop narration" : "\U0001F50A  Listen";
 
     public AsyncCommand RefreshCommand { get; }
 
@@ -334,6 +354,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         if (!isRunning)
         {
             isRunning = true;
+            narration.SpeakingChanged += OnSpeakingChanged;
             sensors.PoseChanged += OnPoseChanged;
             sensors.PositionChanged += OnPositionChanged;
             if (!await sensors.StartAsync())
@@ -358,6 +379,8 @@ public sealed class ArViewerViewModel : ViewModelBase
         }
 
         isRunning = false;
+        narration.SpeakingChanged -= OnSpeakingChanged;
+        narration.Stop();
         sensors.PoseChanged -= OnPoseChanged;
         sensors.PositionChanged -= OnPositionChanged;
         sensors.Stop();
@@ -447,6 +470,7 @@ public sealed class ArViewerViewModel : ViewModelBase
             targetLastSeen = now;
             pendingTarget = null;
             OnPropertyChanged(nameof(TargetDistance));
+            UpdateNarrationRange();
             return;
         }
 
@@ -482,9 +506,14 @@ public sealed class ArViewerViewModel : ViewModelBase
         if (changed)
         {
             IsDetailsOpen = false;
+            narration.Stop(); // a new building: don't keep reading the previous one
+            narrationInRange = false;
             if (sighting is not null)
             {
                 analytics.LogHotspotTapped(sighting.Building.Id, sighting.Building.Name);
+
+                // Seeing a building in the AR camera counts as visiting that location (journey progress on Home).
+                visitorProgress.MarkVisited(sighting.Building.Id);
                 try
                 {
                     HapticFeedback.Default.Perform(HapticFeedbackType.Click);
@@ -506,6 +535,7 @@ public sealed class ArViewerViewModel : ViewModelBase
             nameof(TargetDistance),
             nameof(TargetHasStop),
             nameof(ShowDescription));
+        UpdateNarrationRange();
     }
 
     private Task ToggleDestinationListAsync()
@@ -661,9 +691,50 @@ public sealed class ArViewerViewModel : ViewModelBase
         }
     }
 
+    private void UpdateNarrationRange()
+    {
+        var inRange = target is not null && NarrationRange.IsInRange(target.DistanceMeters, narrationInRange);
+        if (inRange != narrationInRange)
+        {
+            narrationInRange = inRange;
+            OnPropertyChanged(nameof(CanListen));
+        }
+        else if (target is null)
+        {
+            OnPropertyChanged(nameof(CanListen));
+        }
+    }
+
+    private async Task ToggleNarrationAsync()
+    {
+        if (narration.IsSpeaking)
+        {
+            narration.Stop();
+            return;
+        }
+
+        if (!TargetHasDescription)
+        {
+            return;
+        }
+
+        try
+        {
+            await narration.SpeakAsync(TargetDescription);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+            await Dialogs.AlertAsync("Narration unavailable", "This phone has no text-to-speech voice installed.");
+        }
+    }
+
+    private void OnSpeakingChanged(object? sender, EventArgs e) =>
+        MainThread.BeginInvokeOnMainThread(() => OnPropertiesChanged(nameof(CanListen), nameof(ListenButtonText)));
+
     private Task OpenStopAsync() =>
-        target is { Building.StopId.Length: > 0 } t
-            ? Navigation.GoToStopAsync(Routes.StopInfo, t.Building.StopId)
+        target is { } t
+            ? Navigation.GoToStopAsync(Routes.LocationDetail, t.Building.Id)
             : Task.CompletedTask;
 
     public static string FormatDistance(double meters) =>

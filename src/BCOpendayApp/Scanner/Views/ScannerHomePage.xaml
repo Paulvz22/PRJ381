@@ -19,6 +19,7 @@
                 <Button Grid.Column="0" Text="+ Scan building" Command="{Binding NewBuildingCommand}" />
                 <Button Grid.Column="1" Text="Test in AR" Style="{StaticResource SecondaryButton}" Command="{Binding TestArCommand}" />
             </Grid>
+            <Button Text="360° views: capture / import / export" Style="{StaticResource SecondaryButton}" Command="{Binding PanoramasCommand}" />
 
             <!-- Scans that are saved on this phone but not uploaded yet. -->
             <Border Style="{StaticResource Card}" Stroke="{StaticResource BcYellowBrush}" IsVisible="{Binding HasPending}">
