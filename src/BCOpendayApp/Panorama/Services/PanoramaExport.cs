@@ -36,7 +36,7 @@ public static class PanoramaExport
 
         if (!draft.IsFullSphere)
         {
-            scene["avoidShowingBackground"] = true;
+            scene["minHfov"] = 20; // same as the in-app viewer: see PanoramaTour.BuildViewerConfig
         }
 
         if (draft.HasLocation)

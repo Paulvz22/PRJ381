@@ -144,7 +144,7 @@ static class PanoramaCaptureTests
             var config = root["scenes"]![Id("c1")]!.AsObject();
             Check(Text(config["panorama"]) == "data:image/jpeg;base64,AAAA");
             Check(Num(config["haov"]) == 360 && Near(Num(config["vaov"]), 62.5, 1e-6));
-            Check((bool)config["avoidShowingBackground"]!);
+            Check(config["avoidShowingBackground"] is null && Num(config["minHfov"]) == 20); // strips can't fill a portrait screen
             Check((bool)config["compass"]! && Num(config["northOffset"]) == 0);
             Check(Near(Num(config["yaw"]), -160, 1e-6));               // 200 wrapped into (-180, 180]
             Check(config["hotSpots"]!.AsArray().Count == 1);

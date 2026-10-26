@@ -44,6 +44,10 @@ public partial class PanoramaPage : BasePage
     private bool vrEnabled;
     private bool sensorRunning;
     private bool sendingOrientation;
+
+    // A JavaScript call that is still running when the WebView loads a new view can be dropped by Android and
+    // never complete. Each call therefore gets a deadline, so one lost call cannot stop the phone motion for good.
+    private static readonly TimeSpan OrientationCallTimeout = TimeSpan.FromMilliseconds(500);
     private double pitch;
     private DateTimeOffset lastSent = DateTimeOffset.MinValue;
 
@@ -191,7 +195,11 @@ public partial class PanoramaPage : BasePage
             }
 
             var config = tour.BuildViewerConfig(scene, image, initialYaw);
-            TourWebView.Source = new HtmlWebViewSource { Html = await BuildHtmlAsync(scene.Title, config) };
+            var html = await BuildHtmlAsync(scene.Title, config);
+
+            // Any orientation call still in flight belongs to the page being replaced; don't wait for it.
+            sendingOrientation = false;
+            TourWebView.Source = new HtmlWebViewSource { Html = html };
 
             loadedSceneId = scene.Id;
             LoadingState.IsVisible = false;
@@ -451,7 +459,16 @@ public partial class PanoramaPage : BasePage
             sendingOrientation = true;
             try
             {
-                await TourWebView.EvaluateJavaScriptAsync(script);
+                var call = TourWebView.EvaluateJavaScriptAsync(script);
+                if (await Task.WhenAny(call, Task.Delay(OrientationCallTimeout)) != call)
+                {
+                    // Lost while a new view was loading: observe it later so it can't raise an unobserved error.
+                    _ = call.ContinueWith(t => _ = t.Exception, TaskScheduler.Default);
+                }
+                else
+                {
+                    await call;
+                }
             }
             catch (Exception exception)
             {

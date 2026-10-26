@@ -217,7 +217,11 @@ public sealed class PanoramaTour
 
             if (!draft.IsFullSphere)
             {
-                config["avoidShowingBackground"] = true;
+                // A captured strip is only ~50-70° tall, but a portrait phone (and each eye in VR) shows more than
+                // that vertically. Pannellum's avoidShowingBackground cannot fit such a strip and ends up zoomed into
+                // a few pixels, flickering as the phone moves, so the space above and below is simply left dark.
+                // minHfov lets visitors still zoom in far enough to fill the screen if they want.
+                config["minHfov"] = 20;
             }
         }
         else

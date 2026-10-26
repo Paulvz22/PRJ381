@@ -1,3 +1,0 @@
-src/BCOpendayApp/ViewModels/TourViewModel.cs
-src/BCOpendayApp/Views/TourPage.xaml
-src/BCOpendayApp/Views/TourPage.xaml.cs
