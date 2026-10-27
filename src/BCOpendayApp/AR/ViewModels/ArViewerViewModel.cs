@@ -1,6 +1,7 @@
 using BCOpendayApp.AR.Data;
 using BCOpendayApp.AR.Geo;
 using BCOpendayApp.AR.Models;
+using BCOpendayApp.AR.Nav;
 using BCOpendayApp.AR.Sensors;
 using BCOpendayApp.Infrastructure;
 using BCOpendayApp.Services;
@@ -36,15 +37,42 @@ public sealed class ArViewerViewModel : ViewModelBase
     private bool isDetailsOpen;
     private bool cameraAllowed;
     private bool locationAllowed = true;
+    private readonly IVisitorProgressService visitorProgress;
+    private readonly INarrationService narration;
+    private bool narrationInRange;
     private string dataMessage = "Loading buildings...";
     private string statusText = "Starting sensors...";
     private string hintText = string.Empty;
     private string insideText = string.Empty;
 
+    // "Navigate to a building": the destination's centre is the last waypoint on the route. When the bundled
+    // walking graph is available the route follows it; otherwise it stays the straight line, so guidance always works.
+    private BuildingAnchor? destination;
+    private IReadOnlyList<GeoPoint> route = Array.Empty<GeoPoint>();
+    private IReadOnlyList<DestinationOption> destinations = Array.Empty<DestinationOption>();
+    private int navIndex;
+    private bool isNavigating;
+    private bool isChoosingDestination;
+    private string navInstruction = string.Empty;
+    private string navDistanceText = string.Empty;
+    private string navArrivedText = string.Empty;
+    private double navTurnDegrees;
+    private bool hasArrived;
+    private GeoPoint? nextWaypoint;
+
+    // The walking graph (Resources/Raw/nav-graph.json) is loaded at most once; a missing or invalid file just
+    // leaves these null and guidance falls back to the straight line.
+    private const string NavGraphAsset = "nav-graph.json";
+    private Task? graphLoad;
+    private NavGraph? navGraph;
+    private NavRouter? router;
+
     public ArViewerViewModel(
         IBuildingRepository repository,
         IArSensorService sensors,
         IAnalyticsService analytics,
+        IVisitorProgressService visitorProgress,
+        INarrationService narration,
         INavigationService navigation,
         IDialogService dialogs)
         : base(navigation, dialogs)
@@ -52,6 +80,8 @@ public sealed class ArViewerViewModel : ViewModelBase
         this.repository = repository;
         this.sensors = sensors;
         this.analytics = analytics;
+        this.visitorProgress = visitorProgress;
+        this.narration = narration;
 
         ToggleDetailsCommand = CreateCommand(() =>
         {
@@ -59,6 +89,7 @@ public sealed class ArViewerViewModel : ViewModelBase
             return Task.CompletedTask;
         });
         OpenStopCommand = CreateCommand(OpenStopAsync);
+        ListenCommand = CreateCommand(ToggleNarrationAsync);
         RefreshCommand = CreateCommand(() => LoadBuildingsAsync(forceRefresh: true));
         CloseCommand = CreateCommand(() => Navigation.GoBackAsync());
         OpenSettingsCommand = CreateCommand(() =>
@@ -66,6 +97,13 @@ public sealed class ArViewerViewModel : ViewModelBase
             AppInfo.Current.ShowSettingsUI();
             return Task.CompletedTask;
         });
+        GoToCommand = CreateCommand(ToggleDestinationListAsync);
+        StopCommand = CreateCommand(() =>
+        {
+            StopNavigating();
+            return Task.CompletedTask;
+        });
+        ChooseDestinationCommand = CreateCommand<BuildingAnchor>(ChooseDestinationAsync);
     }
 
     /// <summary>Raised whenever the overlay should be redrawn (pose, position or data changed).</summary>
@@ -148,7 +186,8 @@ public sealed class ArViewerViewModel : ViewModelBase
 
     public string TargetDistance => target is null ? string.Empty : $"About {FormatDistance(target.DistanceMeters)} away";
 
-    public bool TargetHasStop => target is { Building.StopId.Length: > 0 };
+    /// <summary>Every scanned building is a campus location, so its location page can always be opened.</summary>
+    public bool TargetHasStop => target is not null;
 
     public bool IsDetailsOpen
     {
@@ -170,11 +209,124 @@ public sealed class ArViewerViewModel : ViewModelBase
 
     public AsyncCommand OpenStopCommand { get; }
 
+    /// <summary>Reads the building's description aloud with the phone's voice (or stops it).</summary>
+    public AsyncCommand ListenCommand { get; }
+
+    /// <summary>
+    /// The "Listen" button: the building has a description and the visitor is within 15 m of it
+    /// (<see cref="NarrationRange"/>). It stays while the narration plays, so it can always be stopped.
+    /// </summary>
+    public bool CanListen => TargetHasDescription && (narrationInRange || narration.IsSpeaking);
+
+    public string ListenButtonText => narration.IsSpeaking ? "\u25A0  Stop narration" : "\U0001F50A  Listen";
+
     public AsyncCommand RefreshCommand { get; }
 
     public AsyncCommand CloseCommand { get; }
 
     public AsyncCommand OpenSettingsCommand { get; }
+
+    /// <summary>Opens (or closes) the inline list of buildings the visitor can walk to.</summary>
+    public AsyncCommand GoToCommand { get; }
+
+    /// <summary>Clears the destination and stops guidance.</summary>
+    public AsyncCommand StopCommand { get; }
+
+    /// <summary>Sets the tapped building as the destination (parameter is its <see cref="BuildingAnchor"/>).</summary>
+    public AsyncCommand ChooseDestinationCommand { get; }
+
+    /// <summary>True while a destination is set and guidance should be shown.</summary>
+    public bool IsNavigating
+    {
+        get => isNavigating;
+        private set
+        {
+            if (SetProperty(ref isNavigating, value))
+            {
+                OnPropertyChanged(nameof(IsGuidanceActive));
+            }
+        }
+    }
+
+    /// <summary>True while the inline destination list should be visible.</summary>
+    public bool IsChoosingDestination
+    {
+        get => isChoosingDestination;
+        private set => SetProperty(ref isChoosingDestination, value);
+    }
+
+    /// <summary>The active buildings offered by the "Go to..." list (name + distance).</summary>
+    public IReadOnlyList<DestinationOption> Destinations
+    {
+        get => destinations;
+        private set => SetProperty(ref destinations, value);
+    }
+
+    /// <summary>The current turn instruction, e.g. "Bear right" (see <see cref="NavGuidance.Describe"/>).</summary>
+    public string NavInstruction
+    {
+        get => navInstruction;
+        private set => SetProperty(ref navInstruction, value);
+    }
+
+    /// <summary>Distance to the destination, formatted like the AR labels.</summary>
+    public string NavDistanceText
+    {
+        get => navDistanceText;
+        private set => SetProperty(ref navDistanceText, value);
+    }
+
+    /// <summary>"You have arrived at X" once the visitor reaches the destination.</summary>
+    public string NavArrivedText
+    {
+        get => navArrivedText;
+        private set => SetProperty(ref navArrivedText, value);
+    }
+
+    /// <summary>Signed turn angle to the destination (negative = left, positive = right); rotates the arrow.</summary>
+    public double NavTurnDegrees
+    {
+        get => navTurnDegrees;
+        private set => SetProperty(ref navTurnDegrees, value);
+    }
+
+    /// <summary>True once the visitor is within the arrival radius of the destination.</summary>
+    public bool HasArrived
+    {
+        get => hasArrived;
+        private set
+        {
+            if (SetProperty(ref hasArrived, value))
+            {
+                OnPropertyChanged(nameof(IsGuidanceActive));
+            }
+        }
+    }
+
+    /// <summary>
+    /// The waypoint the visitor is currently walking to: the next graph node on a routed path, or the
+    /// destination centre when guidance is straight-line. The page draws the ground chevrons toward it.
+    /// </summary>
+    public GeoPoint? NextWaypoint
+    {
+        get => nextWaypoint;
+        private set => SetProperty(ref nextWaypoint, value);
+    }
+
+    /// <summary>
+    /// The full active route (the last waypoint is the destination), or an empty list when not navigating.
+    /// The page walks this polyline to draw the ground chevrons around corners.
+    /// </summary>
+    public IReadOnlyList<GeoPoint> NavRoute => route;
+
+    /// <summary>Index in <see cref="NavRoute"/> of the waypoint being walked to next.</summary>
+    public int NavRouteIndex => navIndex;
+
+    /// <summary>True while turn-by-turn guidance should be shown (navigating and not yet arrived).</summary>
+    public bool IsGuidanceActive => isNavigating && !hasArrived;
+
+    /// <summary>Id of the destination building, or null; used by the page to place the marker.</summary>
+    public string? DestinationId => destination?.Id;
 
     /// <summary>
     /// Called by the page when it appears. Returns true when the camera may be started.
@@ -190,6 +342,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowNoLocation));
 
         _ = LoadBuildingsAsync(forceRefresh: false);
+        _ = EnsureGraphAsync();
 
         if (!location)
         {
@@ -201,6 +354,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         if (!isRunning)
         {
             isRunning = true;
+            narration.SpeakingChanged += OnSpeakingChanged;
             sensors.PoseChanged += OnPoseChanged;
             sensors.PositionChanged += OnPositionChanged;
             if (!await sensors.StartAsync())
@@ -225,6 +379,8 @@ public sealed class ArViewerViewModel : ViewModelBase
         }
 
         isRunning = false;
+        narration.SpeakingChanged -= OnSpeakingChanged;
+        narration.Stop();
         sensors.PoseChanged -= OnPoseChanged;
         sensors.PositionChanged -= OnPositionChanged;
         sensors.Stop();
@@ -256,6 +412,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         }
 
         UpdateTarget();
+        UpdateNavigation();
         FrameChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -265,6 +422,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         {
             sightings = Array.Empty<BuildingSighting>();
             UpdateStatus();
+            UpdateNavigation();
             return;
         }
 
@@ -273,6 +431,7 @@ public sealed class ArViewerViewModel : ViewModelBase
         InsideText = inside is null ? string.Empty : $"You are at {inside.Building.Name}";
         UpdateStatus();
         UpdateTarget();
+        UpdateNavigation();
         FrameChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -311,6 +470,7 @@ public sealed class ArViewerViewModel : ViewModelBase
             targetLastSeen = now;
             pendingTarget = null;
             OnPropertyChanged(nameof(TargetDistance));
+            UpdateNarrationRange();
             return;
         }
 
@@ -346,9 +506,14 @@ public sealed class ArViewerViewModel : ViewModelBase
         if (changed)
         {
             IsDetailsOpen = false;
+            narration.Stop(); // a new building: don't keep reading the previous one
+            narrationInRange = false;
             if (sighting is not null)
             {
                 analytics.LogHotspotTapped(sighting.Building.Id, sighting.Building.Name);
+
+                // Seeing a building in the AR camera counts as visiting that location (journey progress on Home).
+                visitorProgress.MarkVisited(sighting.Building.Id);
                 try
                 {
                     HapticFeedback.Default.Perform(HapticFeedbackType.Click);
@@ -370,13 +535,230 @@ public sealed class ArViewerViewModel : ViewModelBase
             nameof(TargetDistance),
             nameof(TargetHasStop),
             nameof(ShowDescription));
+        UpdateNarrationRange();
     }
 
+    private Task ToggleDestinationListAsync()
+    {
+        if (IsChoosingDestination)
+        {
+            IsChoosingDestination = false;
+            return Task.CompletedTask;
+        }
+
+        Destinations = BuildDestinations();
+        IsChoosingDestination = true;
+        return Task.CompletedTask;
+    }
+
+    private IReadOnlyList<DestinationOption> BuildDestinations()
+    {
+        var position = sensors.Position;
+        return buildings
+            .Where(b => b.IsActive)
+            .OrderBy(b => b.Name)
+            .Select(b => new DestinationOption(
+                b,
+                position is { } p ? FormatDistance(GeoMath.DistanceMeters(p, b.Center)) : string.Empty,
+                ChooseDestinationCommand))
+            .ToList();
+    }
+
+    private async Task ChooseDestinationAsync(BuildingAnchor building)
+    {
+        await EnsureGraphAsync();
+
+        destination = building;
+        route = BuildRoute(building);
+        navIndex = 0;
+        NextWaypoint = null;
+        IsChoosingDestination = false;
+        HasArrived = false;
+        OnPropertyChanged(nameof(DestinationId));
+        IsNavigating = true;
+        UpdateNavigation();
+        FrameChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// The walking route to <paramref name="building"/>: nearest graph node to the visitor, Dijkstra to the node
+    /// that belongs to the building (or the node nearest its centre), then the building centre as the last waypoint.
+    /// Falls back to the single straight-line waypoint when there is no usable graph or the nodes are unreachable.
+    /// </summary>
+    private IReadOnlyList<GeoPoint> BuildRoute(BuildingAnchor building)
+    {
+        var straightLine = new[] { building.Center };
+        if (navGraph is not { } graph || router is not { } activeRouter || sensors.Position is not { } position)
+        {
+            return straightLine;
+        }
+
+        if (activeRouter.NearestNode(position) is not { } start)
+        {
+            return straightLine;
+        }
+
+        var end = graph.Nodes.FirstOrDefault(node => node.BuildingId == building.Id)
+            ?? activeRouter.NearestNode(building.Center);
+        if (end is null)
+        {
+            return straightLine;
+        }
+
+        if (activeRouter.ShortestPath(start.Id, end.Id) is not { Count: > 0 } path)
+        {
+            return straightLine;
+        }
+
+        var routed = new List<GeoPoint>(path) { building.Center };
+        return routed;
+    }
+
+    private void StopNavigating()
+    {
+        destination = null;
+        route = Array.Empty<GeoPoint>();
+        navIndex = 0;
+        IsChoosingDestination = false;
+        IsNavigating = false;
+        NavInstruction = string.Empty;
+        NavDistanceText = string.Empty;
+        NavArrivedText = string.Empty;
+        NavTurnDegrees = 0;
+        NextWaypoint = null;
+        HasArrived = false;
+        OnPropertyChanged(nameof(DestinationId));
+        FrameChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Feeds the active route to <see cref="NavGuidance"/> and updates the banner and next waypoint.</summary>
+    private void UpdateNavigation()
+    {
+        if (destination is not { } targetBuilding)
+        {
+            return;
+        }
+
+        if (sensors.Position is not { } position || sensors.Pose is not { } pose)
+        {
+            NavInstruction = "Finding your position...";
+            NavDistanceText = string.Empty;
+            NavArrivedText = string.Empty;
+            NavTurnDegrees = 0;
+            NextWaypoint = null;
+            HasArrived = false;
+            return;
+        }
+
+        if (NavGuidance.Next(position, pose.Heading, route, navIndex, sensors.AccuracyMeters) is not { } step)
+        {
+            return;
+        }
+
+        navIndex = step.NextIndex;
+        NavTurnDegrees = step.TurnDegrees;
+        NavInstruction = NavGuidance.Describe(step.TurnDegrees);
+        NavDistanceText = step.Arrived ? string.Empty : FormatDistance(step.DistanceToNextMeters);
+        NextWaypoint = step.Next;
+        HasArrived = step.Arrived;
+        NavArrivedText = step.Arrived ? $"You have arrived at {targetBuilding.Name}" : string.Empty;
+    }
+
+    /// <summary>Starts loading the bundled walking graph exactly once.</summary>
+    private Task EnsureGraphAsync() => graphLoad ??= LoadGraphAsync();
+
+    private async Task LoadGraphAsync()
+    {
+        try
+        {
+            if (!await FileSystem.Current.AppPackageFileExistsAsync(NavGraphAsset))
+            {
+                return;
+            }
+
+            await using var stream = await FileSystem.Current.OpenAppPackageFileAsync(NavGraphAsset);
+            using var reader = new StreamReader(stream);
+            var graph = NavGraph.Load(await reader.ReadToEndAsync());
+            navGraph = graph;
+            router = new NavRouter(graph);
+        }
+        catch (Exception exception)
+        {
+            // A missing or malformed graph is not an error: guidance just stays straight-line.
+            System.Diagnostics.Debug.WriteLine(exception);
+            navGraph = null;
+            router = null;
+        }
+    }
+
+    private void UpdateNarrationRange()
+    {
+        var inRange = target is not null && NarrationRange.IsInRange(target.DistanceMeters, narrationInRange);
+        if (inRange != narrationInRange)
+        {
+            narrationInRange = inRange;
+            OnPropertyChanged(nameof(CanListen));
+        }
+        else if (target is null)
+        {
+            OnPropertyChanged(nameof(CanListen));
+        }
+    }
+
+    private async Task ToggleNarrationAsync()
+    {
+        if (narration.IsSpeaking)
+        {
+            narration.Stop();
+            return;
+        }
+
+        if (!TargetHasDescription)
+        {
+            return;
+        }
+
+        try
+        {
+            await narration.SpeakAsync(TargetDescription);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+            await Dialogs.AlertAsync("Narration unavailable", "This phone has no text-to-speech voice installed.");
+        }
+    }
+
+    private void OnSpeakingChanged(object? sender, EventArgs e) =>
+        MainThread.BeginInvokeOnMainThread(() => OnPropertiesChanged(nameof(CanListen), nameof(ListenButtonText)));
+
     private Task OpenStopAsync() =>
-        target is { Building.StopId.Length: > 0 } t
-            ? Navigation.GoToStopAsync(Routes.StopInfo, t.Building.StopId)
+        target is { } t
+            ? Navigation.GoToStopAsync(Routes.LocationDetail, t.Building.Id)
             : Task.CompletedTask;
 
     public static string FormatDistance(double meters) =>
         meters < 1 ? "0 m" : meters < 1000 ? $"{Math.Round(meters / 5) * 5:0} m" : $"{meters / 1000:0.0} km";
+}
+
+/// <summary>One row in the inline "Go to..." list: a destination building and how far it is.</summary>
+public sealed class DestinationOption
+{
+    public DestinationOption(BuildingAnchor building, string distanceText, AsyncCommand selectCommand)
+    {
+        Building = building;
+        DistanceText = distanceText;
+        SelectCommand = selectCommand;
+    }
+
+    public BuildingAnchor Building { get; }
+
+    public string Name => Building.Name;
+
+    public string DistanceText { get; }
+
+    /// <summary>Name and distance on one line, e.g. "Library  ·  120 m".</summary>
+    public string Label => DistanceText.Length > 0 ? $"{Name}  ·  {DistanceText}" : Name;
+
+    public AsyncCommand SelectCommand { get; }
 }

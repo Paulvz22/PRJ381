@@ -14,12 +14,13 @@ public static class Routes
 
     // Registered in AppShell.xaml.cs (navigate with INavigationService.GoToAsync)
     public const string Locations = "locations";
-    public const string StartTour = "start-tour";
+    public const string LocationDetail = "location";
     public const string StopViewer = "stop-viewer";
     public const string StopInfo = "stop-info";
     public const string StopGallery = "stop-gallery";
     public const string HowItWorks = "how-it-works";
     public const string About = "about";
+    public const string Pano = "pano";
     public const string VisitorInfo = "visitor-info";
 
     /// <summary>Name of the query parameter that carries a stop id to the stop pages.</summary>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Views.PanoramaPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    Title="360 virtual tour"
+    Shell.TabBarIsVisible="False">
+
+    <Grid>
+        <VerticalStackLayout
+            x:Name="LoadingState"
+            Spacing="12"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+            <ActivityIndicator
+                IsRunning="True"
+                Color="{StaticResource BcRed}"
+                HorizontalOptions="Center" />
+            <Label
+                x:Name="LoadingText"
+                Text="Loading the 360° tour..."
+                Style="{StaticResource MutedLabel}"
+                HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <WebView x:Name="TourWebView" IsVisible="False" />
+
+        <!-- Top-right chips, hidden while in VR. VR and Move phone need the orientation sensor; Listen needs a
+             description on the current view. -->
+        <HorizontalStackLayout
+            x:Name="Chips"
+            IsVisible="False"
+            HorizontalOptions="End"
+            VerticalOptions="Start"
+            Margin="12"
+            Spacing="8">
+            <!-- Reads the current view's description aloud with the phone's voice. -->
+            <Border
+                x:Name="ListenChip"
+                IsVisible="False"
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label
+                    x:Name="ListenChipLabel"
+                    Text="Listen"
+                    TextColor="White"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnListenTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Cardboard-style VR: put the phone in a headset; look at an arrow for 1.5 s to move. -->
+            <Border
+                x:Name="VrChip"
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label Text="VR headset" TextColor="White" FontFamily="OpenSansSemibold" FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnVrTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Look around by moving the phone (on) or by swiping (off). -->
+            <Border
+                x:Name="MotionToggle"
+                Padding="12,8"
+                BackgroundColor="#CC0D0D0D"
+                Stroke="{StaticResource BcYellowBrush}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+                <Label
+                    x:Name="MotionToggleLabel"
+                    Text="Move phone: ON"
+                    TextColor="White"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnMotionToggleTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+        </HorizontalStackLayout>
+    </Grid>
+</views:BasePage>

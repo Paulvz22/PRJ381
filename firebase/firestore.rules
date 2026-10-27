@@ -31,6 +31,59 @@ service cloud.firestore {
         && b.updatedBy == request.auth.uid;
     }
 
+    // 360° views: the image is base64 text split over up to 16 "chunks" documents (Firestore documents hold
+    // at most 1 MB); this document describes it. Limits match Panorama/Services/PanoramaChunks.cs.
+    function validPanorama(id, p) {
+      return id.matches('^[a-f0-9]{32}$')
+        && p.keys().hasOnly(['name', 'width', 'height', 'verticalFov', 'isFullSphere', 'captureMethod',
+             'photoCount', 'hasLocation', 'lat', 'lng', 'accuracyMeters', 'hasNorthOffset', 'northOffset',
+             'mimeType', 'chunkCount', 'byteLength', 'sha256', 'uploadId', 'updatedAtUnixMs', 'updatedBy',
+             'locationId', 'description'])
+        && p.name is string && p.name.size() >= 1 && p.name.size() <= 100
+        && p.width is int && p.width >= 256 && p.width <= 8192
+        && p.height is int && p.height >= 32 && p.height <= 4096
+        && p.verticalFov is number && p.verticalFov >= 10 && p.verticalFov <= 180
+        && p.isFullSphere is bool
+        && p.captureMethod is string && p.captureMethod.size() <= 40
+        && p.photoCount is int && p.photoCount >= 0 && p.photoCount <= 100
+        && p.hasLocation is bool
+        && p.lat is number && p.lat >= -90 && p.lat <= 90
+        && p.lng is number && p.lng >= -180 && p.lng <= 180
+        && p.accuracyMeters is number && p.accuracyMeters >= 0
+        && p.hasNorthOffset is bool
+        && p.northOffset is number && p.northOffset >= 0 && p.northOffset < 360
+        && p.mimeType in ['image/jpeg', 'image/png']
+        && p.chunkCount is int && p.chunkCount >= 1 && p.chunkCount <= 16
+        && p.byteLength is int && p.byteLength >= 1 && p.byteLength <= 8400000
+        && p.sha256 is string && p.sha256.size() == 64
+        && p.uploadId is string && p.uploadId.size() >= 8 && p.uploadId.size() <= 40
+        && p.updatedAtUnixMs is int
+        && p.updatedBy == request.auth.uid
+        // Optional (views made before campus locations existed do not have them).
+        && (!('locationId' in p) || (p.locationId is string
+             && (p.locationId == '' || p.locationId.matches('^[a-z0-9][a-z0-9-]{0,39}$'))))
+        && (!('description' in p) || (p.description is string && p.description.size() <= 300));
+    }
+
+    // One photo per campus location (base64 JPEG, shrunk by the app to at most 600 KB).
+    function validLocationPhoto(id, p) {
+      return id.matches('^[a-z0-9][a-z0-9-]{0,39}$')
+        && p.keys().hasOnly(['data', 'sha256', 'mimeType', 'updatedAtUnixMs', 'updatedBy'])
+        && p.data is string && p.data.size() >= 1 && p.data.size() <= 800000
+        && p.sha256 is string && p.sha256.size() == 64
+        && p.mimeType == 'image/jpeg'
+        && p.updatedAtUnixMs is int
+        && p.updatedBy == request.auth.uid;
+    }
+
+    function validPanoramaChunk(chunkId, c) {
+      return chunkId.matches('^([0-9]|1[0-5])$')
+        && c.keys().hasOnly(['data', 'uploadId', 'index'])
+        && c.data is string && c.data.size() >= 1 && c.data.size() <= 700000
+        && c.uploadId is string && c.uploadId.size() >= 8 && c.uploadId.size() <= 40
+        && c.index is int && string(c.index) == chunkId;
+    }
+
     // ---- Open Day catalogue: signed-in visitors can read, nobody can write from the app.
     match /locations/{locationId} {
       allow get, list: if signedIn();
@@ -41,6 +94,27 @@ service cloud.firestore {
     match /buildings/{buildingId} {
       allow get, list: if signedIn();
       allow create, update: if isScanner() && validBuilding(buildingId, request.resource.data);
+      allow delete: if isScanner();
+    }
+
+    // ---- 360° views: every visitor can read; only scanner (staff) accounts can upload or remove.
+    match /panoramas/{panoramaId} {
+      allow get, list: if signedIn();
+      allow create, update: if isScanner() && validPanorama(panoramaId, request.resource.data);
+      allow delete: if isScanner();
+
+      match /chunks/{chunkId} {
+        allow get, list: if signedIn();
+        allow create, update: if isScanner() && validPanoramaChunk(chunkId, request.resource.data);
+        allow delete: if isScanner();
+      }
+    }
+
+    // ---- Campus location photos: every visitor can read; only scanner (staff) accounts can change them.
+    match /locationPhotos/{locationId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if isScanner() && validLocationPhoto(locationId, request.resource.data);
       allow delete: if isScanner();
     }
 

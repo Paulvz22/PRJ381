@@ -1,6 +1,10 @@
 using BCOpendayApp.AR;
+using BCOpendayApp.AR.Data;
+using BCOpendayApp.Panorama;
+using BCOpendayApp.Panorama.Services;
 using BCOpendayApp.Scanner;
 using BCOpendayApp.Services;
+using BCOpendayApp.Services.Campus;
 using BCOpendayApp.ViewModels;
 using BCOpendayApp.Views;
 using CommunityToolkit.Maui;
@@ -40,7 +44,8 @@ public static class MauiProgram
         // AR building guide (AR/ folder) and the staff-only building scanner (Scanner/ folder).
         builder
             .UseBuildingAr()
-            .UseBuildingScanner();
+            .UseBuildingScanner()
+            .UseLocalPanoramas();
 
         builder.Services
             .AddServices()
@@ -125,6 +130,13 @@ public static class MauiProgram
             provider.GetRequiredService<ILocationEnvironment>()))
         // App services
         .AddSingleton<IVisitorProgressService, VisitorProgressService>()
+        // Campus locations: built automatically from AR building scans + online 360° views (+ one photo each)
+        .AddSingleton<ILocationPhotoRemoteStore, FirestoreLocationPhotoStore>()
+        .AddSingleton<ICampusLocationService>(provider => new CampusLocationService(
+            provider.GetRequiredService<IBuildingRepository>(),
+            provider.GetRequiredService<PanoramaOnlineLibrary>(),
+            provider.GetRequiredService<ILocationPhotoRemoteStore>(),
+            FileSystem.Current.AppDataDirectory))
         .AddSingleton<INarrationService, NarrationService>()
         .AddSingleton<INavigationService, NavigationService>()
         .AddSingleton<IDialogService, DialogService>();
@@ -133,9 +145,9 @@ public static class MauiProgram
     private static IServiceCollection AddViewModels(this IServiceCollection services) => services
         .AddTransient<SplashViewModel>()
         .AddTransient<HomeViewModel>()
-        .AddTransient<TourViewModel>()
         .AddTransient<MapViewModel>()
         .AddTransient<LocationsViewModel>()
+        .AddTransient<LocationDetailViewModel>()
         .AddTransient<StartTourViewModel>()
         .AddTransient<StopViewerViewModel>()
         .AddTransient<StopInfoViewModel>()
@@ -147,14 +159,15 @@ public static class MauiProgram
     private static IServiceCollection AddPages(this IServiceCollection services) => services
         .AddTransient<SplashPage>()
         .AddTransient<HomePage>()
-        .AddTransient<TourPage>()
         .AddTransient<MapPage>()
         .AddTransient<LocationsPage>()
+        .AddTransient<LocationDetailPage>()
         .AddTransient<StartTourPage>()
         .AddTransient<StopViewerPage>()
         .AddTransient<StopInfoPage>()
         .AddTransient<StopGalleryPage>()
         .AddTransient<HowItWorksPage>()
         .AddTransient<AboutPage>()
+        .AddTransient<PanoramaPage>()
         .AddTransient<VisitorInfoPage>();
 }

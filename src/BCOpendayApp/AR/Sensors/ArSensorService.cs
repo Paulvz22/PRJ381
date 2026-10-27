@@ -53,6 +53,9 @@ public sealed class ArSensorService : IArSensorService
     private GeoPoint? declinationAt;
     private int listeners;
     private bool usingCompass;
+#if ANDROID
+    private AndroidLocationFeed? locationFeed;
+#endif
 
     public event EventHandler? PoseChanged;
 
@@ -81,6 +84,22 @@ public sealed class ArSensorService : IArSensorService
         heading.Reset();
         StartOrientation();
 
+#if ANDROID
+        // .NET MAUI's Android listener asks Android for updates only after the phone has moved 50 m (it passes its
+        // accuracy setting as Android's "minimum distance"), so walking to the next building corner produced no
+        // new fix. AndroidLocationFeed asks for a fix every second with no minimum distance.
+        try
+        {
+            await Task.CompletedTask; // Android starts synchronously; keeps the async signature shared with iOS.
+            locationFeed ??= new AndroidLocationFeed(OnLocation);
+            return locationFeed.Start();
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"GPS start failed: {exception}");
+            return false;
+        }
+#else
         try
         {
             Geolocation.Default.LocationChanged += OnLocationChanged;
@@ -98,6 +117,7 @@ public sealed class ArSensorService : IArSensorService
             System.Diagnostics.Debug.WriteLine($"GPS start failed: {exception}");
             return false;
         }
+#endif
     }
 
     public void Stop()
@@ -110,8 +130,12 @@ public sealed class ArSensorService : IArSensorService
         listeners = 0;
         try
         {
+#if ANDROID
+            locationFeed?.Stop();
+#else
             Geolocation.Default.LocationChanged -= OnLocationChanged;
             Geolocation.Default.StopListeningForeground();
+#endif
         }
         catch (Exception exception)
         {
@@ -210,7 +234,9 @@ public sealed class ArSensorService : IArSensorService
         Raise(PoseChanged);
     }
 
+#if !ANDROID
     private void OnLocationChanged(object? sender, GeolocationLocationChangedEventArgs e) => OnLocation(e.Location);
+#endif
 
     private void OnLocation(Location location)
     {

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="BCOpendayApp.Panorama.Views.PanoramaCapturePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BCOpendayApp.Views"
+    xmlns:vm="clr-namespace:BCOpendayApp.Panorama.ViewModels"
+    x:DataType="vm:PanoramaCaptureViewModel"
+    Title="Capture 360° view"
+    BackgroundColor="Black"
+    Shell.TabBarIsVisible="False">
+
+    <Grid>
+        <!-- The CameraView is created in code-behind only after the permission prompts are answered
+             (the toolkit's camera asks for permissions itself the moment it exists). -->
+        <ContentView x:Name="CameraHost" />
+
+        <!-- Aim: keep the next target in this ring. -->
+        <Grid InputTransparent="True" HorizontalOptions="Center" VerticalOptions="Center">
+            <Ellipse WidthRequest="84" HeightRequest="84" Stroke="White" StrokeThickness="3" />
+            <Label
+                Text="{Binding TurnText}"
+                TextColor="{StaticResource BcYellow}"
+                FontSize="40"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Top: GPS and progress -->
+        <Border
+            VerticalOptions="Start"
+            Margin="12"
+            Padding="12,8"
+            BackgroundColor="#CC0D0D0D"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 14">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{Binding GpsText}" TextColor="White" FontSize="13" />
+                <Label Text="{Binding ProgressText}" TextColor="{StaticResource BcYellow}" FontFamily="OpenSansSemibold" FontSize="14" />
+                <ProgressBar Progress="{Binding Progress}" ProgressColor="{StaticResource BcYellow}" IsVisible="{Binding IsCapturing}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Bottom: instructions and buttons -->
+        <Border
+            VerticalOptions="End"
+            Margin="12"
+            Padding="16"
+            BackgroundColor="#E60D0D0D"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 18">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="{Binding GuidanceText}" TextColor="White" FontFamily="OpenSansSemibold" FontSize="16" />
+
+                <!-- Before starting -->
+                <VerticalStackLayout Spacing="10" IsVisible="{Binding IsSetup}">
+                    <Entry
+                        Text="{Binding Name}"
+                        Placeholder="Name of this view, e.g. Library entrance"
+                        PlaceholderColor="#99FFFFFF"
+                        TextColor="White"
+                        MaxLength="100" />
+                    <!-- Which campus location this view belongs to (AR building or earlier view), or a new one. -->
+                    <Picker
+                        Title="Location"
+                        ItemsSource="{Binding LocationChoices}"
+                        SelectedIndex="{Binding SelectedLocationIndex}"
+                        TextColor="White"
+                        TitleColor="#99FFFFFF" />
+                    <Entry
+                        Text="{Binding Description}"
+                        Placeholder="Short description (optional)"
+                        PlaceholderColor="#99FFFFFF"
+                        TextColor="White"
+                        MaxLength="300" />
+                    <Button Text="Start" Command="{Binding StartCommand}" />
+                </VerticalStackLayout>
+
+                <!-- While capturing -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsVisible="{Binding IsCapturing}">
+                    <Button Text="Take photo now" Command="{Binding CaptureNowCommand}" />
+                    <Button Grid.Column="1" Text="Cancel" Style="{StaticResource SecondaryButton}" Command="{Binding CancelCommand}" />
+                </Grid>
+
+                <!-- Joining the photos -->
+                <HorizontalStackLayout Spacing="12" IsVisible="{Binding IsStitching}">
+                    <ActivityIndicator IsRunning="{Binding IsStitching}" Color="{StaticResource BcYellow}" />
+                    <Label Text="{Binding StitchText}" TextColor="White" FontSize="13" VerticalOptions="Center" MaxLines="3" WidthRequest="260" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</views:BasePage>

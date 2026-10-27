@@ -16,15 +16,39 @@
     <Compile Include="../../src/BCOpendayApp/Services/Locations/HotspotValidation.cs" Link="Source/HotspotValidation.cs" />
     <Compile Include="../../src/BCOpendayApp/Services/Locations/LocationService.cs" Link="Source/LocationService.cs" />
     <Compile Include="../../src/BCOpendayApp/Services/Locations/MapGeometry.cs" Link="Source/MapGeometry.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/INarrationService.cs" Link="Source/INarrationService.cs" />
     <!-- AR guide: pure maths + data loading (no MAUI types). -->
     <Compile Include="../../src/BCOpendayApp/AR/Models/BuildingAnchor.cs" Link="Source/AR/BuildingAnchor.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/GeoMath.cs" Link="Source/AR/GeoMath.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/BuildingTargeting.cs" Link="Source/AR/BuildingTargeting.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Geo/SensorMath.cs" Link="Source/AR/SensorMath.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Nav/NavGuidance.cs" Link="Source/AR/NavGuidance.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Nav/NavGraph.cs" Link="Source/AR/NavGraph.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Nav/NavGraphJsonContext.cs" Link="Source/AR/NavGraphJsonContext.cs" />
+    <Compile Include="../../src/BCOpendayApp/AR/Nav/NavRouter.cs" Link="Source/AR/NavRouter.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingValidation.cs" Link="Source/AR/BuildingValidation.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingJsonContext.cs" Link="Source/AR/BuildingJsonContext.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/IBuildingStores.cs" Link="Source/AR/IBuildingStores.cs" />
     <Compile Include="../../src/BCOpendayApp/AR/Data/BuildingRepository.cs" Link="Source/AR/BuildingRepository.cs" />
+    <!-- Local panorama import: pure validation, file-name and viewer-config logic (no MAUI types). -->
+    <Compile Include="../../src/BCOpendayApp/Panorama/Models/PanoramaDraft.cs" Link="Source/Panorama/PanoramaDraft.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaImageReader.cs" Link="Source/Panorama/PanoramaImageReader.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaLocalFiles.cs" Link="Source/Panorama/PanoramaLocalFiles.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaValidation.cs" Link="Source/Panorama/PanoramaValidation.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaViewerConfig.cs" Link="Source/Panorama/PanoramaViewerConfig.cs" />
+    <!-- In-app 360° capture: automatic arrows, combined tour, export, capture guidance and the stitcher. -->
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaLinks.cs" Link="Source/Panorama/PanoramaLinks.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaTour.cs" Link="Source/Panorama/PanoramaTour.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaExport.cs" Link="Source/Panorama/PanoramaExport.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Capture/PanoramaStitcher.cs" Link="Source/Panorama/PanoramaStitcher.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Capture/PanoramaCapturePlan.cs" Link="Source/Panorama/PanoramaCapturePlan.cs" />
+    <!-- Online 360° views: image pieces, manifest checks, phone cache (with a fake Firestore). -->
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaChunks.cs" Link="Source/Panorama/PanoramaChunks.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/IPanoramaRemoteStore.cs" Link="Source/Panorama/IPanoramaRemoteStore.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaOnlineLibrary.cs" Link="Source/Panorama/PanoramaOnlineLibrary.cs" />
+    <Compile Include="../../src/BCOpendayApp/Panorama/Services/PanoramaDraftJsonContext.cs" Link="Source/Panorama/PanoramaDraftJsonContext.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Campus/CampusLocation.cs" Link="Source/Campus/CampusLocation.cs" />
+    <Compile Include="../../src/BCOpendayApp/Services/Campus/LocationPhotos.cs" Link="Source/Campus/LocationPhotos.cs" />
     <None Include="../../src/BCOpendayApp/Resources/Raw/buildings.json" Link="buildings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../src/BCOpendayApp/Resources/Raw/locations.json" Link="locations.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

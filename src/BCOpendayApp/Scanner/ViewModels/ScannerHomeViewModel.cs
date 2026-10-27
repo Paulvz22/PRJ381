@@ -1,6 +1,7 @@
 using BCOpendayApp.AR;
 using BCOpendayApp.AR.Data;
 using BCOpendayApp.AR.Models;
+using BCOpendayApp.Panorama;
 using BCOpendayApp.Infrastructure;
 using BCOpendayApp.Scanner.Services;
 using BCOpendayApp.Services;
@@ -46,6 +47,7 @@ public sealed class ScannerHomeViewModel : ViewModelBase
         UploadDraftsCommand = CreateCommand(UploadDraftsAsync);
         ExportCommand = CreateCommand(ExportAsync);
         TestArCommand = CreateCommand(() => Navigation.GoToAsync(ArRoutes.Viewer));
+        PanoramasCommand = CreateCommand(() => Navigation.GoToAsync(PanoramaRoutes.Drafts));
         RefreshCommand = CreateCommand(() => LoadAsync(forceRefresh: true));
         SignOutCommand = CreateCommand(async () =>
         {
@@ -99,6 +101,9 @@ public sealed class ScannerHomeViewModel : ViewModelBase
     public AsyncCommand ExportCommand { get; }
 
     public AsyncCommand TestArCommand { get; }
+
+    /// <summary>Staff 360° tools: capture, import, export (same sign-in as the scanner).</summary>
+    public AsyncCommand PanoramasCommand { get; }
 
     public AsyncCommand RefreshCommand { get; }
 

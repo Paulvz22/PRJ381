@@ -68,6 +68,42 @@ public static class ArPlatform
         return (fallbackShort, fallbackLong);
     }
 
+    /// <summary>
+    /// How the back camera's sensor is mounted (degrees the image must be turned clockwise to be upright when
+    /// the phone is held in portrait). 90 on almost every phone; used when a photo carries no rotation tag.
+    /// </summary>
+    public static int BackCameraSensorOrientation()
+    {
+#if ANDROID
+        try
+        {
+            var context = Android.App.Application.Context;
+            if (context.GetSystemService(Android.Content.Context.CameraService) is Android.Hardware.Camera2.CameraManager manager)
+            {
+                foreach (var id in manager.GetCameraIdList())
+                {
+                    var characteristics = manager.GetCameraCharacteristics(id);
+                    var facing = characteristics.Get(Android.Hardware.Camera2.CameraCharacteristics.LensFacing) as Java.Lang.Integer;
+                    if (facing is null || facing.IntValue() != 1) // 1 = CameraMetadata.LENS_FACING_BACK
+                    {
+                        continue;
+                    }
+
+                    if (characteristics.Get(Android.Hardware.Camera2.CameraCharacteristics.SensorOrientation) is Java.Lang.Integer orientation)
+                    {
+                        return orientation.IntValue();
+                    }
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Camera orientation unavailable: {exception.Message}");
+        }
+#endif
+        return 90;
+    }
+
     /// <summary>Keeps the AR screen in portrait (sensor maths assume it) and awake while it is open.</summary>
     public static void EnterArMode()
     {
